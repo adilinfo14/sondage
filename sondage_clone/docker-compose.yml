@@ -15,6 +15,14 @@ services:
       - "127.0.0.1:5050:5050"
     volumes:
       - sondage_data:/app/data
+    networks:
+      - default
+      - proxy-net
 
 volumes:
   sondage_data:
+
+networks:
+  proxy-net:
+    external: true
+
