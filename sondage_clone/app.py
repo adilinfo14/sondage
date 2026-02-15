@@ -53,7 +53,7 @@ POLL_TYPE_LABELS = {
 }
 RESPONSE_MODE_LABELS = {
     "availability": "Disponibilités (Oui / Non)",
-    "single": "Choix unique (1 option parmi N)",
+    "single": "Choix unique (1 option parmi n)",
     "multiple": "Choix multiple (plusieurs options)",
 }
 FEEDBACK_COMPONENTS = {
@@ -1253,9 +1253,13 @@ def create_app() -> Flask:
 
         for slot in slots:
             if response_mode == "single":
-                choice = "yes" if slot["id"] == selected_slot_id else "no"
+                if slot["id"] != selected_slot_id:
+                    continue
+                choice = "yes"
             elif response_mode == "multiple":
-                choice = "yes" if slot["id"] in selected_multiple else "no"
+                if slot["id"] not in selected_multiple:
+                    continue
+                choice = "yes"
             else:
                 choice_key = f"choice_{slot['id']}"
                 choice = request.form.get(choice_key, "no").strip().lower()

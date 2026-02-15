@@ -187,12 +187,18 @@
                     <td>{{ participant_labels.get(participant, participant) }}</td>
                     <td>{{ comments.get(participant, '-') }}</td>
                     {% for slot in slots %}
+                    {% if poll.response_mode in ['single', 'multiple'] %}
+                    {% set choice = matrix[participant].get(slot.id, '') %}
+                    {% else %}
                     {% set choice = matrix[participant].get(slot.id, 'no') %}
+                    {% endif %}
                     <td>
                         {% if choice == 'yes' %}
                         ✅
-                        {% else %}
+                        {% elif choice == 'no' %}
                         ❌
+                        {% else %}
+                        —
                         {% endif %}
                     </td>
                     {% endfor %}
