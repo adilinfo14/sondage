@@ -53,6 +53,21 @@ Puis ouvre `http://127.0.0.1:5050` dans ton navigateur.
 
 Voir le guide: `sondage_clone/DEPLOYMENT.md`
 
+## GitHub Actions
+
+Le repo contient 2 workflows:
+
+- `CI` : vérifie la syntaxe Python et build l'image Docker.
+- `Deploy Sondage` : déploie `sondage_clone` sur ta VM via SSH.
+
+Secrets GitHub à créer dans le repo:
+
+- `VM_HOST` : IP ou domaine de la VM
+- `VM_USER` : utilisateur SSH
+- `VM_SSH_KEY` : clé privée SSH
+- `VM_PORT` : port SSH (optionnel, sinon 22)
+- `VM_PROJECT_DIR` : chemin du repo sur la VM (ex: `/opt/sondage`)
+
 ## API utilisée
 
 - Géocodage + météo : Open-Meteo (gratuit, sans clé API)

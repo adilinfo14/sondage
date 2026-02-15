@@ -1,0 +1,31 @@
+name: Deploy Sondage
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "sondage_clone/**"
+      - ".github/workflows/deploy-sondage.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on VM via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_PORT || '22' }}
+          script: |
+            set -e
+            cd "${{ secrets.VM_PROJECT_DIR }}"
+            git fetch --all
+            git reset --hard origin/main
+            cd sondage_clone
+            docker-compose pull || true
+            docker-compose up -d --build
+            docker-compose ps
