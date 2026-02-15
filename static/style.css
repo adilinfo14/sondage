@@ -1,0 +1,344 @@
+:root {
+    --bg-1: #0f1021;
+    --bg-2: #1f2a64;
+    --card: rgba(255, 255, 255, 0.12);
+    --card-border: rgba(255, 255, 255, 0.24);
+    --text: #ffffff;
+    --muted: rgba(255, 255, 255, 0.72);
+    --accent: #ff8a00;
+    --accent-2: #ff4d8d;
+}
+
+body[data-theme="light"] {
+    --bg-1: #9fd2ff;
+    --bg-2: #d6ecff;
+    --card: rgba(255, 255, 255, 0.68);
+    --card-border: rgba(113, 156, 207, 0.34);
+    --text: #11234a;
+    --muted: rgba(17, 35, 74, 0.72);
+    --accent: #0077ff;
+    --accent-2: #00b3ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at 10% 10%, #4f5bd5 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, #ff4d8d 0%, transparent 35%),
+        linear-gradient(140deg, var(--bg-1), var(--bg-2));
+}
+
+.app-shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 32px 20px 40px;
+}
+
+.hero {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    padding: 28px;
+}
+
+.badge {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+h1 {
+    margin: 10px 0;
+    line-height: 1.1;
+    font-size: clamp(1.7rem, 4vw, 2.6rem);
+}
+
+.subtitle {
+    margin: 0 0 22px;
+    color: var(--muted);
+}
+
+.search {
+    position: relative;
+}
+
+.search-field {
+    display: flex;
+    gap: 12px;
+}
+
+#cityInput {
+    flex: 1;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.16);
+    color: white;
+}
+
+#cityInput::placeholder {
+    color: rgba(255, 255, 255, 0.66);
+}
+
+button {
+    border: none;
+    border-radius: 14px;
+    padding: 0 20px;
+    font-weight: 700;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(120deg, var(--accent), var(--accent-2));
+}
+
+.hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.theme-toggle {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.16);
+}
+
+body[data-theme="light"] .theme-toggle {
+    border: 1px solid rgba(17, 35, 74, 0.18);
+    background: rgba(255, 255, 255, 0.72);
+    color: #11234a;
+}
+
+button:hover {
+    filter: brightness(1.07);
+}
+
+.suggestions {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 6px;
+    border-radius: 14px;
+    background: rgba(6, 8, 28, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.suggestions li {
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #e9ecff;
+}
+
+.suggestions li:hover,
+.suggestions li.active {
+    background: rgba(110, 128, 255, 0.3);
+}
+
+.status {
+    margin: 14px 0 0;
+    color: var(--muted);
+}
+
+.result {
+    display: grid;
+    gap: 16px;
+    margin-top: 18px;
+    grid-template-columns: 1fr;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    padding: 22px;
+}
+
+.current-row {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.weather-visual {
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.weather-icon {
+    font-size: clamp(2.6rem, 6vw, 4rem);
+    display: inline-block;
+    transform-origin: center;
+    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25));
+}
+
+.icon-sun {
+    animation: pulseSun 2.4s ease-in-out infinite;
+}
+
+.icon-cloud {
+    animation: floatCloud 2.8s ease-in-out infinite;
+}
+
+.icon-rain {
+    animation: rainDrop 1.2s ease-in-out infinite;
+}
+
+.icon-snow {
+    animation: driftSnow 2.2s ease-in-out infinite;
+}
+
+.icon-storm {
+    animation: flashStorm 0.8s ease-in-out infinite;
+}
+
+.icon-fog {
+    animation: floatCloud 3.2s ease-in-out infinite;
+}
+
+.label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.metric {
+    margin: 6px 0 0;
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.metric-text {
+    margin: 6px 0 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.details {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    color: #edf0ff;
+}
+
+.forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+.day {
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.day p {
+    margin: 4px 0;
+}
+
+.day-icon {
+    font-size: 1.6rem;
+    margin-bottom: 2px;
+    display: inline-block;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes pulseSun {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.12);
+    }
+}
+
+@keyframes floatCloud {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(7px);
+    }
+}
+
+@keyframes rainDrop {
+
+    0%,
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(4px);
+        opacity: 0.86;
+    }
+}
+
+@keyframes driftSnow {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(4px) rotate(8deg);
+    }
+}
+
+@keyframes flashStorm {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25));
+    }
+
+    50% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 10px 16px rgba(255, 200, 0, 0.55));
+    }
+}
+
+@media (max-width: 700px) {
+    .search-field {
+        flex-direction: column;
+    }
+
+    button {
+        height: 46px;
+    }
+
+    .current-row {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">🗳️ Sondage style Sondage</p>
+    <h1>Crée un sondage RDV ou avis</h1>
+    <p class="sub">Prise de rendez-vous, vote d'équipe, choix d'idées: tout en un, avec accès organisateur sécurisé.</p>
+</section>
+
+<section class="card">
+    <form action="{{ url_for('create_poll') }}" method="post" class="poll-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label>
+            Titre du sondage
+            <input type="text" name="title" placeholder="Ex: Réunion projet Mars" required>
+        </label>
+
+        <label>
+            Type de sondage
+            <select name="poll_type">
+                <option value="meeting" selected>📅 Prise de RDV</option>
+                <option value="opinion">💡 Prise d’avis / décision</option>
+            </select>
+        </label>
+
+        <label>
+            Description (optionnelle)
+            <textarea name="description" rows="3" placeholder="Contexte, durée, lien visio..."></textarea>
+        </label>
+
+        <label>
+            Nom de l'organisateur (optionnel)
+            <input type="text" name="creator_name" placeholder="Ex: Ilhan">
+        </label>
+
+        <label>
+            Date limite de vote (optionnelle)
+            <input type="datetime-local" name="deadline_at">
+        </label>
+
+        <label>
+            Code organisateur (minimum 8 caractères)
+            <input type="password" name="organizer_code" minlength="8" placeholder="Code secret" required>
+        </label>
+
+        <label>
+            Créneaux / options (un par ligne)
+            <textarea name="slots" rows="7"
+                placeholder="Ex RDV:\nLundi 19/02 - 10:00\nLundi 19/02 - 14:00\nMardi 20/02 - 09:30\n\nEx avis:\nOption A\nOption B\nOption C"
+                required></textarea>
+        </label>
+
+        <button type="submit">Créer le sondage</button>
+    </form>
+</section>
+{% endblock %}

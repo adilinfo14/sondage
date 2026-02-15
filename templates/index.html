@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo Pop - Monde</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="app-shell">
+        <section class="hero">
+            <div class="hero-top">
+                <p class="badge">🌤️ Météo mondiale</p>
+                <button id="themeToggle" class="theme-toggle" type="button" aria-label="Changer de thème">🌙
+                    Nuit</button>
+            </div>
+            <h1>Ta météo du monde,<br>avec du peps ✨</h1>
+            <p class="subtitle">Tape une ville, choisis dans les suggestions, et découvre la météo actuelle + les 5
+                prochains jours.</p>
+
+            <form id="weatherForm" class="search" autocomplete="off">
+                <div class="search-field">
+                    <input id="cityInput" type="text" placeholder="Ex: Paris, Tokyo, Rio, Dakar..." required>
+                    <button type="submit">Rechercher</button>
+                </div>
+                <ul id="suggestions" class="suggestions hidden"></ul>
+            </form>
+
+            <p id="status" class="status">Entre au moins 2 caractères pour lancer l’autocomplétion.</p>
+        </section>
+
+        <section id="result" class="result hidden">
+            <article class="card current-card">
+                <h2 id="location">-</h2>
+                <div class="weather-visual">
+                    <span id="currentIcon" class="weather-icon icon-sun" aria-hidden="true">☀️</span>
+                </div>
+                <div class="current-row">
+                    <div>
+                        <p class="label">Température</p>
+                        <p id="temp" class="metric">--°C</p>
+                    </div>
+                    <div>
+                        <p class="label">Conditions</p>
+                        <p id="weather" class="metric-text">--</p>
+                    </div>
+                </div>
+                <div class="details">
+                    <span id="humidity">Humidité: --%</span>
+                    <span id="wind">Vent: -- km/h</span>
+                </div>
+            </article>
+
+            <article class="card forecast-card">
+                <h3>Prévisions 5 jours</h3>
+                <div id="forecast" class="forecast-grid"></div>
+            </article>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+
+</html>

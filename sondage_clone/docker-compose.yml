@@ -1,0 +1,20 @@
+services:
+  sondage:
+    build:
+      context: ..
+      dockerfile: sondage_clone/Dockerfile
+    container_name: sondage-clone
+    restart: unless-stopped
+    environment:
+      PORT: "5050"
+      FLASK_DEBUG: "0"
+      SONDAGE_COOKIE_SECURE: "1"
+      SONDAGE_SECRET_KEY: "change-me-very-long-random-string"
+      SONDAGE_DB_PATH: "/app/data/sondage.db"
+    ports:
+      - "127.0.0.1:5050:5050"
+    volumes:
+      - sondage_data:/app/data
+
+volumes:
+  sondage_data:
