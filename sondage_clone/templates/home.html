@@ -8,7 +8,7 @@
 </section>
 
 <section class="card">
-    <form action="{{ url_for('create_poll') }}" method="post" class="poll-form">
+    <form id="createPollForm" action="{{ url_for('create_poll') }}" method="post" class="poll-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <label>
@@ -19,8 +19,22 @@
         <label>
             Type de sondage
             <select name="poll_type">
-                <option value="meeting" selected>📅 Prise de RDV</option>
+                <option value="meeting" selected>📅 Réunion / RDV</option>
                 <option value="opinion">💡 Prise d’avis / décision</option>
+                <option value="event">🎉 Événement</option>
+                <option value="training">🎓 Formation</option>
+                <option value="shift">🕒 Planning / permanence</option>
+                <option value="meal">🍽️ Sortie / repas</option>
+                <option value="trip">✈️ Voyage / déplacement</option>
+            </select>
+        </label>
+
+        <label>
+            Mode de vote
+            <select name="response_mode">
+                <option value="availability" selected>Disponibilités (Oui / Non)</option>
+                <option value="single">Choix unique (1 option parmi N)</option>
+                <option value="multiple">Choix multiple (plusieurs options)</option>
             </select>
         </label>
 
@@ -30,8 +44,8 @@
         </label>
 
         <label>
-            Nom de l'organisateur (optionnel)
-            <input type="text" name="creator_name" placeholder="Ex: Ilhan">
+            Nom et prénom de l'organisateur
+            <input type="text" name="creator_name" placeholder="Ex: Ilhan Dupont" required>
         </label>
 
         <label>
@@ -45,13 +59,54 @@
         </label>
 
         <label>
+            Emails des participants (optionnel)
+            <textarea name="participant_emails" rows="3"
+                placeholder="Un email par ligne, ou séparés par virgule. Ex: alice@mail.com, bob@mail.com"></textarea>
+        </label>
+
+        <label>
             Créneaux / options (un par ligne)
             <textarea name="slots" rows="7"
                 placeholder="Ex RDV:\nLundi 19/02 - 10:00\nLundi 19/02 - 14:00\nMardi 20/02 - 09:30\n\nEx avis:\nOption A\nOption B\nOption C"
                 required></textarea>
         </label>
 
-        <button type="submit">Créer le sondage</button>
+        <label class="consent-row">
+            <input type="checkbox" name="rgpd_email_rights">
+            <span>Je confirme disposer du consentement des participants avant envoi d’emails d’invitation (version {{
+                consent_version }}).</span>
+        </label>
+
+        <label class="consent-row">
+            <input type="checkbox" name="rgpd_creator" required>
+            <span>J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de
+                    confidentialité (RGPD)</a> (version {{ consent_version }}).</span>
+        </label>
+
+        <div class="form-actions">
+            <button type="button" id="previewPollBtn">Prévisualiser le sondage</button>
+            <button type="submit" id="submitPollBtn" disabled>Créer le sondage</button>
+        </div>
     </form>
 </section>
+
+<div id="pollPreviewModal" class="modal-backdrop" hidden>
+    <section class="card modal-card" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+        <div class="modal-header">
+            <h2 id="previewModalTitle">Prévisualisation avant création</h2>
+            <button type="button" id="closePreviewModalBtn" class="modal-close-btn" aria-label="Fermer">✕</button>
+        </div>
+        <p><strong id="previewTitle"></strong></p>
+        <p class="meta" id="previewCreator"></p>
+        <p class="meta" id="previewType"></p>
+        <p class="meta" id="previewMode"></p>
+        <p class="meta" id="previewDeadline"></p>
+        <p class="meta" id="previewDescription"></p>
+        <div>
+            <p class="slot-label">Options proposées</p>
+            <ul id="previewSlots"></ul>
+        </div>
+        <p class="sub">Si tout est correct, ferme cette fenêtre puis clique sur « Créer le sondage ».</p>
+    </section>
+</div>
 {% endblock %}

@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# local env files
+sondage_clone/.env
+sondage_clone/.env.local

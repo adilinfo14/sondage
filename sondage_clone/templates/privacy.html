@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">🔒 Confidentialité</p>
+    <h1>Politique de confidentialité (RGPD)</h1>
+    <p class="sub">Cette page explique quelles données sont traitées dans l’application Sondage.</p>
+    <p class="sub">Version de politique: {{ consent_version }}</p>
+</section>
+
+<section class="card">
+    <h2>Données traitées</h2>
+    <ul>
+        <li>Données organisateur: nom (optionnel), titre et description du sondage.</li>
+        <li>Données participants: nom, choix de vote et commentaire optionnel.</li>
+        <li>Emails participants: utilisés uniquement pour l’envoi d’invitations quand fournis.</li>
+        <li>Données d’authentification: email du compte et hash du mot de passe.</li>
+    </ul>
+
+    <h2>Finalités</h2>
+    <ul>
+        <li>Créer et partager un sondage.</li>
+        <li>Collecter les réponses et afficher les résultats.</li>
+        <li>Envoyer des invitations email si l’organisateur active cette option.</li>
+        <li>Sécuriser l’accès à l’application via connexion par compte.</li>
+    </ul>
+
+    <h2>Base légale</h2>
+    <ul>
+        <li>Consentement explicite via les cases RGPD dans les formulaires.</li>
+        <li>Intérêt légitime d’organisation d’un rendez-vous ou d’une prise d’avis.</li>
+        <li>Exécution de mesures précontractuelles pour la gestion du compte d’accès.</li>
+    </ul>
+
+    <h2>Preuve de consentement</h2>
+    <ul>
+        <li>Pour l’authentification, l’application enregistre la date/heure et la version de politique acceptée.</li>
+        <li>Pour la création d’un sondage et pour le vote, la date/heure et la version de politique sont également
+            journalisées.</li>
+        <li>En cas d’envoi d’emails d’invitation, une confirmation explicite du droit d’envoi est enregistrée.</li>
+    </ul>
+
+    <h2>Durée de conservation</h2>
+    <p>Les données restent conservées tant que le sondage n’est pas supprimé par l’organisateur ou l’administrateur.</p>
+
+    <h2>Droits des personnes</h2>
+    <p>Chaque personne peut demander l’accès, la rectification ou la suppression de ses données via l’organisateur du
+        sondage.</p>
+
+    <h2>Contact</h2>
+    <p>Pour toute demande liée à la confidentialité, contacte l’administrateur du service.</p>
+</section>
+{% endblock %}

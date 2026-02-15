@@ -2,48 +2,55 @@
 
 {% block content %}
 <section class="card hero">
-    <p class="eyebrow">🔗 Lien de partage</p>
+    <p class="eyebrow">{% if admin_mode %}🔗 Lien de partage{% else %}🗳️ Sondage{% endif %}</p>
     <h1>{{ poll.title }}</h1>
     {% if poll.description %}
     <p class="sub">{{ poll.description }}</p>
     {% endif %}
-    <p class="meta">Type: {% if poll.poll_type == 'opinion' %}💡 Avis / décision{% else %}📅 Prise de RDV{% endif %}</p>
+    <p class="meta">Type: {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
+    <p class="meta">Mode: {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
     {% if poll.deadline_at %}
     <p class="meta">Date limite: {{ poll.deadline_at.replace('T', ' ') }} {% if closed %}(clôturé){% endif %}</p>
     {% endif %}
+    {% if admin_mode %}
     <div class="share-box">
         <input id="shareUrl" type="text" readonly value="{{ poll_url }}">
         <button type="button" id="copyLinkBtn">Copier le lien</button>
     </div>
+    <p class="meta"><a href="{{ url_for('home') }}">Créer un nouveau sondage</a></p>
+    {% endif %}
     {% if poll.creator_name %}
     <p class="meta">Organisé par {{ poll.creator_name }}</p>
     {% endif %}
 </section>
 
+{% if admin_mode %}
 <section class="card">
-    {% if admin_mode %}
     <h2>Mode organisateur ✅</h2>
     <form action="{{ url_for('admin_logout', token=poll.token) }}" method="post" class="inline-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit">Quitter le mode organisateur</button>
     </form>
-    {% else %}
-    <h2>Accès organisateur</h2>
-    <form action="{{ url_for('admin_login', token=poll.token) }}" method="post" class="inline-form">
+</section>
+{% else %}
+<details class="card organizer-details">
+    <summary>Je suis organisateur</summary>
+    <form action="{{ url_for('admin_login', token=poll.token) }}" method="post" class="inline-form"
+        style="margin-top:12px;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="password" name="organizer_code" placeholder="Code organisateur" required>
-        <button type="submit">Voir les résultats détaillés</button>
+        <button type="submit">Accéder aux résultats détaillés</button>
     </form>
-    {% endif %}
-</section>
+</details>
+{% endif %}
 
-{% if top_choice %}
+{% if top_choice and admin_mode %}
 <section class="card">
     <h2>Meilleure option actuelle</h2>
     <article class="result-card best-choice">
         <p class="slot-label">{{ top_choice.label }}</p>
-        <p>✅ Oui: <strong>{{ top_choice.yes_count }}</strong> | 🤔 Peut-être: <strong>{{ top_choice.maybe_count
-                }}</strong> | ❌ Non: <strong>{{ top_choice.no_count }}</strong></p>
+        <p>✅ Oui: <strong>{{ top_choice.yes_count }}</strong> | ❌ Non: <strong>{{ top_choice.no_count }}</strong>
+        </p>
     </article>
 </section>
 {% endif %}
@@ -52,38 +59,94 @@
     <h2>{% if closed %}Votes fermés{% else %}Voter{% endif %}</h2>
     {% if closed %}
     <p>La date limite est dépassée, le sondage est clôturé.</p>
+    {% elif organizer_has_voted and not show_vote_form %}
+    <p>Tu as déjà voté sur ce sondage avec ton compte organisateur. Le formulaire est masqué pour éviter les doublons.
+    </p>
+    <p class="meta">Tu peux consulter les résultats globaux ci-dessous, ou modifier ton vote si besoin.</p>
+    <p><a href="{{ url_for('view_poll', token=poll.token, edit=1) }}">Modifier mon vote</a></p>
+    {% elif voter_has_voted and not show_vote_form %}
+    <p>Ton vote est bien enregistré pour <strong>{{ voter_identity_label }}</strong>.</p>
+    <p class="meta">Tu peux consulter les résultats globaux ci-dessous, ou modifier ton vote si besoin.</p>
+    <p><a href="{{ url_for('view_poll', token=poll.token, edit=1) }}">Modifier mon vote</a></p>
     {% else %}
-    <form action="{{ url_for('vote', token=poll.token) }}" method="post" class="vote-form">
+    <form action="{{ url_for('vote', token=poll.token) }}" method="post" class="vote-form"
+        data-vote-status-url="{{ url_for('vote_status', token=poll.token) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label>
-            Ton nom
-            <input type="text" name="participant_name" placeholder="Ex: Sarah" required>
+            Nom et prénom
+            <input type="text" name="participant_name" placeholder="Ex: Sarah Martin"
+                value="{{ organizer_prefill_name }}" required>
         </label>
+
+        <label>
+            Ton email
+            <input type="email" name="participant_email" placeholder="Ex: sarah@email.com"
+                value="{{ organizer_prefill_email }}">
+            <span class="meta">Optionnel (recommandé pour mieux éviter les doublons).</span>
+        </label>
+
+        <p id="voteStatusMessage" class="meta" aria-live="polite"></p>
 
         <label>
             Commentaire / avis (optionnel)
             <textarea name="comment" rows="2" maxlength="280"
-                placeholder="Ex: Je préfère le matin, ou Option B pour son coût."></textarea>
+                placeholder="Ex: Je préfère le matin, ou Option B pour son coût.">{{ existing_comment }}</textarea>
         </label>
 
+        {% if poll.response_mode == 'single' %}
+        <div class="slot-grid">
+            {% for slot in slots %}
+            <label class="slot-item vote-choice-card">
+                <input type="radio" name="selected_slot" value="{{ slot.id }}" {% if existing_choice_by_slot.get(slot.id,
+                    'no') == 'yes' %}checked{% elif not edit_vote_mode and loop.first %}checked{% endif %}>
+                <span class="slot-label vote-choice-label">{{ slot.label }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        {% elif poll.response_mode == 'multiple' %}
+        <div class="slot-grid">
+            {% for slot in slots %}
+            <label class="slot-item vote-choice-card">
+                <input type="checkbox" name="selected_slots" value="{{ slot.id }}" {% if
+                    existing_choice_by_slot.get(slot.id, 'no') == 'yes' %}checked{% endif %}>
+                <span class="slot-label vote-choice-label">{{ slot.label }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        {% else %}
         <div class="slot-grid">
             {% for slot in slots %}
             <div class="slot-item">
                 <p class="slot-label">{{ slot.label }}</p>
                 <select name="choice_{{ slot.id }}">
                     {% if poll.poll_type == 'opinion' %}
-                    <option value="yes">👍 Pour</option>
-                    <option value="maybe">🤔 Mitigé</option>
-                    <option value="no" selected>👎 Contre</option>
+                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no') == 'yes' %}selected{% endif
+                        %}>👍 Pour</option>
+                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no') != 'yes' %}selected{% endif
+                        %}>👎 Contre</option>
                     {% else %}
-                    <option value="yes">✅ Oui</option>
-                    <option value="maybe">🤔 Peut-être</option>
-                    <option value="no" selected>❌ Non</option>
+                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no') == 'yes' %}selected{% endif
+                        %}>✅ Oui</option>
+                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no') != 'yes' %}selected{% endif
+                        %}>❌ Non</option>
                     {% endif %}
                 </select>
             </div>
             {% endfor %}
         </div>
+        {% endif %}
+
+        <label class="consent-row">
+            <input type="checkbox" name="rgpd_vote" required>
+            <span>J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de
+                    confidentialité (RGPD)</a> (version {{ consent_version }}).</span>
+        </label>
+
+        <label class="consent-row">
+            <input type="checkbox" name="replace_existing_vote" {% if replace_vote_default_checked %}checked{% endif
+                %}>
+            <span>Modifier mon vote existant (si j’ai déjà voté).</span>
+        </label>
 
         <button type="submit">Enregistrer mon vote</button>
     </form>
@@ -97,7 +160,6 @@
         <article class="result-card">
             <p class="slot-label">{{ row.label }}</p>
             <p>✅ Oui: <strong>{{ row.yes_count }}</strong></p>
-            <p>🤔 Peut-être: <strong>{{ row.maybe_count }}</strong></p>
             <p>❌ Non: <strong>{{ row.no_count }}</strong></p>
         </article>
         {% endfor %}
@@ -122,15 +184,13 @@
             <tbody>
                 {% for participant in participants %}
                 <tr>
-                    <td>{{ participant }}</td>
+                    <td>{{ participant_labels.get(participant, participant) }}</td>
                     <td>{{ comments.get(participant, '-') }}</td>
                     {% for slot in slots %}
                     {% set choice = matrix[participant].get(slot.id, 'no') %}
                     <td>
                         {% if choice == 'yes' %}
                         ✅
-                        {% elif choice == 'maybe' %}
-                        🤔
                         {% else %}
                         ❌
                         {% endif %}

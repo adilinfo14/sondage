@@ -14,11 +14,18 @@ Dans le dossier `sondage_clone`:
 
 1. Copie le fichier d'environnement:
 
-   `cp .env.example .env`
+   `cp .env.server.example .env`
 
 2. Mets une vraie clé secrète dans `.env`:
 
    `SONDAGE_SECRET_KEY=...`
+
+   Et vérifie les paramètres sécurité:
+
+   - `SONDAGE_AUTH_ENABLED=1`
+   - `SONDAGE_COOKIE_SECURE=1`
+   - `SONDAGE_COOKIE_SAMESITE=Strict`
+   - `FEEDBACK_TO_EMAIL=ton-email@domaine.com` (optionnel, sinon `SMTP_FROM_EMAIL`)
 
 3. Lance l'application:
 
@@ -31,6 +38,12 @@ Dans le dossier `sondage_clone`:
 5. Ouvre:
 
    `http://IP_DE_TA_VM:5050`
+
+6. Création du premier compte:
+
+   - Mets temporairement `SONDAGE_AUTH_ALLOW_REGISTRATION=1`
+   - Crée ton compte via `/auth/register`
+   - Puis repasse `SONDAGE_AUTH_ALLOW_REGISTRATION=0` et redémarre
 
 ### Variante production avec reverse proxy
 
@@ -100,7 +113,7 @@ Redirige vers la VM:
 
 Dans `sondage_clone`:
 
-- `cp .env.example .env`
+- `cp .env.server.example .env`
 - Mets une vraie valeur dans `SONDAGE_SECRET_KEY`
 - `docker-compose up -d --build`
 

@@ -13,6 +13,35 @@
 
 <body>
     <main class="container">
+        <section class="card nav-card">
+            {% set minimalist_poll_view = request.endpoint == 'view_poll' and not app_auth_logged_in %}
+            <nav class="top-nav">
+                {% if not minimalist_poll_view %}
+                <a class="nav-btn" href="{{ url_for('home') }}">Accueil / Créer un sondage</a>
+                {% endif %}
+                {% if app_auth_enabled and app_auth_logged_in %}
+                <a class="nav-btn" href="{{ url_for('my_polls') }}">Mes sondages</a>
+                {% endif %}
+                <a class="nav-btn" href="{{ url_for('privacy_policy') }}">Politique RGPD</a>
+            </nav>
+        </section>
+
+        {% if app_auth_enabled and app_auth_logged_in %}
+        <section class="card" style="padding:10px 14px;">
+            <form action="{{ url_for('auth_logout') }}" method="post"
+                style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <span class="sub" style="margin:0;">
+                    Connecté : {{ app_auth_user_email }}
+                    {% if app_auth_user_is_admin %}
+                    · <a href="{{ url_for('admin_users') }}">Administration comptes</a>
+                    {% endif %}
+                </span>
+                <button type="submit">Déconnexion</button>
+            </form>
+        </section>
+        {% endif %}
+
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <section class="flash-stack">
@@ -24,7 +53,67 @@
         {% endwith %}
 
         {% block content %}{% endblock %}
+
+        <section style="text-align:center; padding-bottom:8px;">
+            <a href="{{ url_for('privacy_policy') }}">Politique de confidentialité (RGPD)</a>
+        </section>
     </main>
+
+    <button type="button" id="openFeedbackBtn" class="feedback-fab" aria-label="Ouvrir le formulaire de feedback">
+        💬 Feedback
+    </button>
+
+    <div id="feedbackModal" class="modal-backdrop" hidden>
+        <section class="card modal-card feedback-modal-card" role="dialog" aria-modal="true"
+            aria-labelledby="feedbackModalTitle">
+            <div class="modal-header">
+                <h2 id="feedbackModalTitle">Envoyer un feedback</h2>
+                <button type="button" id="closeFeedbackModalBtn" class="modal-close-btn" aria-label="Fermer">✕</button>
+            </div>
+
+            <form action="{{ url_for('feedback_submit') }}" method="post" class="poll-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="return_to"
+                    value="{{ request.full_path if request.query_string else request.path }}">
+                <input type="hidden" name="feedback_page" value="{{ request.path }}">
+
+                <label>
+                    Composant à améliorer
+                    <select name="feedback_component" required>
+                        <option value="vote" selected>Vote</option>
+                        <option value="creation">Création de sondage</option>
+                        <option value="results">Résultats</option>
+                        <option value="navigation">Navigation</option>
+                        <option value="account">Compte / connexion</option>
+                        <option value="performance">Performance</option>
+                        <option value="other">Autre</option>
+                    </select>
+                </label>
+
+                <label>
+                    Ton nom (optionnel)
+                    <input type="text" name="feedback_name" maxlength="80" placeholder="Ex: Nadia K.">
+                </label>
+
+                <label>
+                    Ton email (optionnel)
+                    <input type="email" name="feedback_email" placeholder="Ex: nadia@email.com">
+                </label>
+
+                <label>
+                    Ta proposition d’amélioration
+                    <textarea name="feedback_message" id="feedbackMessageInput" rows="5" maxlength="1200"
+                        placeholder="Décris le problème et propose ton amélioration..." required></textarea>
+                    <span id="feedbackChars" class="meta">0 / 1200</span>
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit">Envoyer le feedback</button>
+                    <button type="button" id="cancelFeedbackBtn">Annuler</button>
+                </div>
+            </form>
+        </section>
+    </div>
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

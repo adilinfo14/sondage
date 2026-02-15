@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">📚 Organisateur</p>
+    <h1>Mes sondages</h1>
+    <p class="sub">Vue globale de tes sondages créés, avec archivage simple.</p>
+</section>
+
+<section class="card">
+    <h2>Sondages actifs</h2>
+    {% if active_polls %}
+    <div class="results-grid">
+        {% for poll in active_polls %}
+        <article class="result-card">
+            <p class="slot-label">{{ poll.title }}</p>
+            <p class="meta">Type: {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
+            <p class="meta">Mode: {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
+            <p class="meta">Votes enregistrés: {{ poll.votes_count }}</p>
+            <p class="meta">Créé le: {{ poll.created_at }}</p>
+            <p><a href="{{ url_for('view_poll', token=poll.token) }}">Ouvrir le sondage</a></p>
+            <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post" style="margin-top:8px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="archive">
+                <button type="submit">Archiver</button>
+            </form>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Aucun sondage actif.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2>Sondages archivés</h2>
+    {% if archived_polls %}
+    <div class="results-grid">
+        {% for poll in archived_polls %}
+        <article class="result-card">
+            <p class="slot-label">{{ poll.title }}</p>
+            <p class="meta">Type: {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
+            <p class="meta">Mode: {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
+            <p class="meta">Votes enregistrés: {{ poll.votes_count }}</p>
+            <p class="meta">Archivé le: {{ poll.archived_at }}</p>
+            <p><a href="{{ url_for('view_poll', token=poll.token) }}">Voir le sondage</a></p>
+            <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post" style="margin-top:8px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="unarchive">
+                <button type="submit">Désarchiver</button>
+            </form>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Aucun sondage archivé.</p>
+    {% endif %}
+</section>
+{% endblock %}

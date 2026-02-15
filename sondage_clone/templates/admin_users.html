@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">🛡️ Administration</p>
+    <h1>Gestion des comptes</h1>
+    <p class="sub">Active, désactive et attribue le rôle administrateur aux comptes utilisateurs.</p>
+</section>
+
+<section class="card">
+    <h2>Comptes</h2>
+    {% if users %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Statut</th>
+                    <th>Rôle</th>
+                    <th>Consentement</th>
+                    <th>Créé le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.email }}</td>
+                    <td>{% if user.is_active %}Actif{% else %}Désactivé{% endif %}</td>
+                    <td>{% if user.is_admin %}Administrateur{% else %}Utilisateur{% endif %}</td>
+                    <td>
+                        {% if user.consent_auth_at %}
+                        {{ user.consent_auth_at }}{% if user.consent_auth_version %} ({{ user.consent_auth_version }}){%
+                        endif %}
+                        {% else %}
+                        Non enregistré
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at }}</td>
+                    <td>
+                        <div class="admin-actions">
+                            <form action="{{ url_for('admin_toggle_user_active', user_id=user.id) }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit">{% if user.is_active %}Désactiver{% else %}Activer{% endif
+                                    %}</button>
+                            </form>
+                            <form action="{{ url_for('admin_toggle_user_admin', user_id=user.id) }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit">{% if user.is_admin %}Retirer admin{% else %}Donner admin{% endif
+                                    %}</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Aucun compte trouvé.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -49,6 +49,29 @@ python sondage_clone/app.py
 
 Puis ouvre `http://127.0.0.1:5050` dans ton navigateur.
 
+Configuration d'environnement conseillée:
+
+- Local: copier `sondage_clone/.env.local.example` vers `sondage_clone/.env.local`
+- Serveur/Docker: copier `sondage_clone/.env.server.example` vers `sondage_clone/.env`
+
+L'application charge d'abord `.env.local` puis `.env`.
+
+### Sécurité (prod recommandée)
+
+Pour protéger l'app avec comptes utilisateurs:
+
+- `SONDAGE_AUTH_ENABLED=1`
+- `SONDAGE_COOKIE_SECURE=1` (si HTTPS)
+- `SONDAGE_COOKIE_SAMESITE=Strict`
+- `SONDAGE_SESSION_TIMEOUT_MINUTES=720` (ou selon ton besoin)
+
+Initialisation du premier compte en production:
+
+1. Mettre temporairement `SONDAGE_AUTH_ALLOW_REGISTRATION=1`
+2. Créer le compte via `/auth/register`
+3. Repasser `SONDAGE_AUTH_ALLOW_REGISTRATION=0`
+4. Redémarrer l'application
+
 ### Déploiement Home Lab (VM / Docker)
 
 Voir le guide: `sondage_clone/DEPLOYMENT.md`

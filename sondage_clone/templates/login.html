@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">🔐 Espace protégé</p>
+    <h1>Connexion</h1>
+    <p class="sub">Connecte-toi pour créer et gérer des sondages. Les participants peuvent voter via le lien sans
+        compte.</p>
+</section>
+
+<section class="card">
+    <form action="{{ url_for('auth_login') }}" method="post" class="poll-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+
+        <label>
+            Email
+            <input type="email" name="email" autocomplete="email" required>
+        </label>
+
+        <label>
+            Mot de passe
+            <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+
+        <label class="consent-row">
+            <input type="checkbox" name="rgpd_auth_login" required>
+            <span>J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de
+                    confidentialité (RGPD)</a> pour le traitement de mes données de connexion (version {{
+                consent_version }}).</span>
+        </label>
+
+        <button type="submit">Se connecter</button>
+    </form>
+
+    {% if app_auth_allow_registration %}
+    <p class="sub" style="margin-top: 14px;">
+        Pas encore de compte ? <a href="{{ url_for('auth_register', next=next_url) }}">Créer un compte</a>
+    </p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2>RGPD — Connexion</h2>
+    <p class="sub">Les données traitées pour l’authentification sont l’email et un hash de mot de passe (jamais le mot
+        de passe en clair).</p>
+    <p class="sub">Une preuve de consentement (date/heure + version RGPD) est enregistrée lors de la connexion.</p>
+</section>
+{% endblock %}
