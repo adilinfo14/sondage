@@ -2,11 +2,6 @@ name: Deploy Sondage
 
 on:
   workflow_dispatch:
-  push:
-    branches: ["main"]
-    paths:
-      - "sondage_clone/**"
-      - ".github/workflows/deploy-sondage.yml"
 
 jobs:
   deploy:
