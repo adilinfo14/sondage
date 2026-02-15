@@ -144,10 +144,6 @@ if (createPollForm && previewPollBtn && submitPollBtn && previewModal) {
     const previewDescription = document.getElementById("previewDescription");
     const previewSlots = document.getElementById("previewSlots");
 
-    const lockSubmitUntilPreview = () => {
-        submitPollBtn.disabled = true;
-    };
-
     const openPreviewModal = () => {
         if (closeTimer) {
             clearTimeout(closeTimer);
@@ -204,7 +200,6 @@ if (createPollForm && previewPollBtn && submitPollBtn && previewModal) {
         }
 
         openPreviewModal();
-        submitPollBtn.disabled = false;
     };
 
     previewPollBtn.addEventListener("click", () => {
@@ -212,12 +207,6 @@ if (createPollForm && previewPollBtn && submitPollBtn && previewModal) {
             return;
         }
         renderPreview();
-    });
-
-    [titleInput, creatorInput, typeInput, modeInput, deadlineInput, descriptionInput, slotsInput].forEach((el) => {
-        if (!el) return;
-        el.addEventListener("input", lockSubmitUntilPreview);
-        el.addEventListener("change", lockSubmitUntilPreview);
     });
 
     if (closePreviewModalBtn) {
