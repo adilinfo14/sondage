@@ -27,10 +27,14 @@
 {% if admin_mode %}
 <section class="card">
     <h2>Mode organisateur ✅</h2>
+    {% if is_poll_owner %}
+    <p class="meta">Accès automatique activé: tu es le créateur de ce sondage.</p>
+    {% else %}
     <form action="{{ url_for('admin_logout', token=poll.token) }}" method="post" class="inline-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit">Quitter le mode organisateur</button>
     </form>
+    {% endif %}
 </section>
 {% else %}
 <details class="card organizer-details">
@@ -97,8 +101,9 @@
         <div class="slot-grid">
             {% for slot in slots %}
             <label class="slot-item vote-choice-card">
-                <input type="radio" name="selected_slot" value="{{ slot.id }}" {% if existing_choice_by_slot.get(slot.id,
-                    'no') == 'yes' %}checked{% elif not edit_vote_mode and loop.first %}checked{% endif %}>
+                <input type="radio" name="selected_slot" value="{{ slot.id }}" {% if
+                    existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}checked{% elif not edit_vote_mode and
+                    loop.first %}checked{% endif %}>
                 <span class="slot-label vote-choice-label">{{ slot.label }}</span>
             </label>
             {% endfor %}
@@ -108,7 +113,7 @@
             {% for slot in slots %}
             <label class="slot-item vote-choice-card">
                 <input type="checkbox" name="selected_slots" value="{{ slot.id }}" {% if
-                    existing_choice_by_slot.get(slot.id, 'no') == 'yes' %}checked{% endif %}>
+                    existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}checked{% endif %}>
                 <span class="slot-label vote-choice-label">{{ slot.label }}</span>
             </label>
             {% endfor %}
@@ -120,15 +125,15 @@
                 <p class="slot-label">{{ slot.label }}</p>
                 <select name="choice_{{ slot.id }}">
                     {% if poll.poll_type == 'opinion' %}
-                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no') == 'yes' %}selected{% endif
-                        %}>👍 Pour</option>
-                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no') != 'yes' %}selected{% endif
-                        %}>👎 Contre</option>
+                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}selected{% endif %}>
+                        👍 Pour</option>
+                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no' ) !='yes' %}selected{% endif %}>
+                        👎 Contre</option>
                     {% else %}
-                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no') == 'yes' %}selected{% endif
-                        %}>✅ Oui</option>
-                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no') != 'yes' %}selected{% endif
-                        %}>❌ Non</option>
+                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}selected{% endif %}>✅
+                        Oui</option>
+                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no' ) !='yes' %}selected{% endif %}>❌
+                        Non</option>
                     {% endif %}
                 </select>
             </div>
@@ -143,8 +148,7 @@
         </label>
 
         <label class="consent-row">
-            <input type="checkbox" name="replace_existing_vote" {% if replace_vote_default_checked %}checked{% endif
-                %}>
+            <input type="checkbox" name="replace_existing_vote" {% if replace_vote_default_checked %}checked{% endif %}>
             <span>Modifier mon vote existant (si j’ai déjà voté).</span>
         </label>
 

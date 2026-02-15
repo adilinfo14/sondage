@@ -1004,6 +1004,9 @@ def create_app() -> Flask:
         if current_user is not None and poll["created_by_user_id"] is not None:
             is_poll_owner = int(poll["created_by_user_id"]) == int(current_user["id"])
 
+        if is_poll_owner:
+            admin_mode = True
+
         if is_poll_owner and current_user is not None:
             organizer_prefill_name = (poll["creator_name"] or "").strip()
             organizer_prefill_email = (current_user["email"] or "").strip().lower()
@@ -1089,6 +1092,7 @@ def create_app() -> Flask:
             comments=comments if admin_mode else {},
             poll_url=url_for("view_poll", token=token, _external=True),
             admin_mode=admin_mode,
+            is_poll_owner=is_poll_owner,
             closed=closed,
             top_choice=top_choice,
             organizer_prefill_name=organizer_prefill_name,
