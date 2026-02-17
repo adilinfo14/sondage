@@ -7,3 +7,9 @@ __pycache__/
 # local env files
 sondage_clone/.env
 sondage_clone/.env.local
+
+# local sqlite databases
+sondage.db
+sondage_clone/sondage.db
+*.db-shm
+*.db-wal
