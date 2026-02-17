@@ -73,6 +73,12 @@ body {
     background: var(--bg-1);
 }
 
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 .bg-poppies {
     position: fixed;
     inset: 0;
@@ -1329,6 +1335,7 @@ body {
     padding: 28px 18px 40px;
     display: grid;
     gap: 14px;
+    min-width: 0;
 }
 
 .card {
@@ -1338,6 +1345,7 @@ body {
     padding: 20px;
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 24px rgba(16, 32, 51, 0.08);
+    min-width: 0;
 }
 
 .card.hero {
@@ -1384,6 +1392,7 @@ a:hover {
 .vote-form {
     display: grid;
     gap: 16px;
+    min-width: 0;
 }
 
 .vote-identity-grid {
@@ -1832,6 +1841,12 @@ body.modal-open {
     gap: 10px;
     grid-template-columns: 1fr auto;
     margin-top: 8px;
+    min-width: 0;
+}
+
+.share-box input {
+    width: 100%;
+    min-width: 0;
 }
 
 .slot-grid,
@@ -1839,6 +1854,7 @@ body.modal-open {
     display: grid;
     gap: 10px;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    min-width: 0;
 }
 
 .polls-grid {
