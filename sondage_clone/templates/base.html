@@ -12,6 +12,95 @@
 </head>
 
 <body>
+    <div class="bg-poppies" aria-hidden="true">
+        <span class="poppy p1"><span class="bee b1"></span></span>
+        <span class="poppy p2"><span class="bee b2"></span></span>
+        <span class="poppy p3"><span class="bee b3"></span></span>
+        <span class="poppy p4"><span class="bee b4"></span></span>
+        <span class="poppy p5"><span class="bee b5"></span></span>
+        <span class="bee bee-flight"></span>
+        <span class="ladybug lb1">
+            <span class="wing left"></span>
+            <span class="wing right"></span>
+            <span class="face"></span>
+        </span>
+        <span class="ladybug lb2">
+            <span class="wing left"></span>
+            <span class="wing right"></span>
+            <span class="face"></span>
+        </span>
+    </div>
+
+    <div class="bg-nature" aria-hidden="true">
+        <span class="cloud c1"></span>
+        <span class="cloud c2"></span>
+        <span class="cloud c3"></span>
+        <span class="cloud c4"></span>
+        <span class="cloud c5"></span>
+        <span class="tree t1"></span>
+        <span class="tree t2"></span>
+        <span class="tree t3"></span>
+        <span class="tree t4"></span>
+        <span class="tree t5"></span>
+        <span class="tree t6"></span>
+        <span class="owl hibou-left nesting">
+            <span class="wing left"></span>
+            <span class="wing right"></span>
+            <span class="eye e1"></span>
+            <span class="eye e2"></span>
+            <span class="beak"></span>
+            <span class="owlet ow1"></span>
+            <span class="owlet ow2"></span>
+        </span>
+        <span class="owl chouette-right taking-off">
+            <span class="wing left"></span>
+            <span class="wing right"></span>
+            <span class="eye e1"></span>
+            <span class="eye e2"></span>
+            <span class="beak"></span>
+        </span>
+        <span class="nature-bird swallow nb1"></span>
+        <span class="nature-bird gull nb2"></span>
+        <span class="nature-bird swallow nb3"></span>
+        <span class="nature-bird gull reverse nb4"></span>
+        <span class="nature-bird swallow reverse nb5"></span>
+    </div>
+
+    <div class="bg-galaxy" aria-hidden="true">
+        <span class="star s1"></span>
+        <span class="star s2"></span>
+        <span class="star s3"></span>
+        <span class="star s4"></span>
+        <span class="star s5"></span>
+        <span class="star s6"></span>
+        <span class="star s7"></span>
+        <span class="star s8"></span>
+        <span class="star s9"></span>
+        <span class="famous-star fs-sirius"></span>
+        <span class="famous-star fs-vega"></span>
+        <span class="famous-star fs-polaris"></span>
+        <span class="famous-star fs-betelgeuse"></span>
+        <span class="planet p-mercury"></span>
+        <span class="planet p-venus"></span>
+        <span class="planet p-earth"></span>
+        <span class="planet p-mars"></span>
+        <span class="planet p-jupiter"></span>
+        <span class="planet p-saturn"></span>
+        <span class="planet p-neptune"></span>
+        <span class="nebula n1"></span>
+        <span class="nebula n2"></span>
+        <span class="galaxy-swirl g1"></span>
+        <span class="galaxy-swirl g2"></span>
+        <span class="galaxy-swirl g3"></span>
+        <span class="rocket r1">🚀</span>
+        <span class="rocket r2">🚀</span>
+        <span class="rocket r3">🚀</span>
+        <span class="shooting-star st1"></span>
+        <span class="shooting-star st2"></span>
+        <span class="shooting-star st3"></span>
+        <span class="cosmonaut c1"></span>
+    </div>
+
     <main class="container">
         <section class="card nav-card">
             {% set minimalist_poll_view = request.endpoint == 'view_poll' and not app_auth_logged_in %}
@@ -22,7 +111,19 @@
                 {% if app_auth_enabled and app_auth_logged_in %}
                 <a class="nav-btn" href="{{ url_for('my_polls') }}">Mes sondages</a>
                 {% endif %}
-                <a class="nav-btn" href="{{ url_for('privacy_policy') }}">Politique RGPD</a>
+                {% if minimalist_poll_view and app_auth_enabled and not app_auth_logged_in %}
+                <a class="nav-btn" href="{{ url_for('auth_register', next=request.path) }}">Inscription</a>
+                {% else %}
+                <button type="button" id="openFeedbackBtn" class="feedback-nav-btn" aria-label="Ouvrir le formulaire de feedback">💬 Feedback</button>
+                {% endif %}
+                <div class="theme-picker">
+                    <label for="themeSelect">Thème</label>
+                    <select id="themeSelect" aria-label="Choisir un thème visuel">
+                        <option value="default" selected>Coquelicot</option>
+                        <option value="nature">Nature / oiseaux</option>
+                        <option value="galaxy">Univers galaxy</option>
+                    </select>
+                </div>
             </nav>
         </section>
 
@@ -37,7 +138,7 @@
                     · <a href="{{ url_for('admin_users') }}">Administration comptes</a>
                     {% endif %}
                 </span>
-                <button type="submit">Déconnexion</button>
+                <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
         </section>
         {% endif %}
@@ -58,10 +159,6 @@
             <a href="{{ url_for('privacy_policy') }}">Politique de confidentialité (RGPD)</a>
         </section>
     </main>
-
-    <button type="button" id="openFeedbackBtn" class="feedback-fab" aria-label="Ouvrir le formulaire de feedback">
-        💬 Feedback
-    </button>
 
     <div id="feedbackModal" class="modal-backdrop" hidden>
         <section class="card modal-card feedback-modal-card" role="dialog" aria-modal="true"

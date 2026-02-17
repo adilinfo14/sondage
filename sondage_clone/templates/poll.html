@@ -7,11 +7,13 @@
     {% if poll.description %}
     <p class="sub">{{ poll.description }}</p>
     {% endif %}
-    <p class="meta">Type: {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
-    <p class="meta">Mode: {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
-    {% if poll.deadline_at %}
-    <p class="meta">Date limite: {{ poll.deadline_at.replace('T', ' ') }} {% if closed %}(clôturé){% endif %}</p>
-    {% endif %}
+    <p class="meta meta-inline">
+        {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }} · {{ response_mode_labels.get(poll.response_mode,
+        poll.response_mode) }}
+        {% if poll.deadline_at %}
+        · Date limite: {{ poll.deadline_at.replace('T', ' ') }} {% if closed %}(clôturé){% endif %}
+        {% endif %}
+    </p>
     {% if admin_mode %}
     <div class="share-box">
         <input id="shareUrl" type="text" readonly value="{{ poll_url }}">
@@ -24,78 +26,38 @@
     {% endif %}
 </section>
 
-{% if admin_mode %}
-<section class="card">
-    <h2>Mode organisateur ✅</h2>
-    {% if is_poll_owner %}
-    <p class="meta">Accès automatique activé: tu es le créateur de ce sondage.</p>
-    {% else %}
-    <form action="{{ url_for('admin_logout', token=poll.token) }}" method="post" class="inline-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit">Quitter le mode organisateur</button>
-    </form>
-    {% endif %}
-</section>
-{% else %}
-<details class="card organizer-details">
-    <summary>Je suis organisateur</summary>
-    <form action="{{ url_for('admin_login', token=poll.token) }}" method="post" class="inline-form"
-        style="margin-top:12px;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="password" name="organizer_code" placeholder="Code organisateur" required>
-        <button type="submit">Accéder aux résultats détaillés</button>
-    </form>
-</details>
-{% endif %}
-
-{% if top_choice and admin_mode %}
-<section class="card">
-    <h2>Meilleure option actuelle</h2>
-    <article class="result-card best-choice">
-        <p class="slot-label">{{ top_choice.label }}</p>
-        <p>✅ Oui: <strong>{{ top_choice.yes_count }}</strong> | ❌ Non: <strong>{{ top_choice.no_count }}</strong>
-        </p>
-    </article>
-</section>
-{% endif %}
-
 <section class="card">
     <h2>{% if closed %}Votes fermés{% else %}Voter{% endif %}</h2>
     {% if closed %}
     <p>La date limite est dépassée, le sondage est clôturé.</p>
     {% elif organizer_has_voted and not show_vote_form %}
-    <p>Tu as déjà voté sur ce sondage avec ton compte organisateur. Le formulaire est masqué pour éviter les doublons.
-    </p>
-    <p class="meta">Tu peux consulter les résultats globaux ci-dessous, ou modifier ton vote si besoin.</p>
+    <p>Vote organisateur déjà enregistré.</p>
     <p><a href="{{ url_for('view_poll', token=poll.token, edit=1) }}">Modifier mon vote</a></p>
     {% elif voter_has_voted and not show_vote_form %}
-    <p>Ton vote est bien enregistré pour <strong>{{ voter_identity_label }}</strong>.</p>
-    <p class="meta">Tu peux consulter les résultats globaux ci-dessous, ou modifier ton vote si besoin.</p>
+    <p>Ton vote est enregistré pour <strong>{{ voter_identity_label }}</strong>.</p>
     <p><a href="{{ url_for('view_poll', token=poll.token, edit=1) }}">Modifier mon vote</a></p>
     {% else %}
     <form action="{{ url_for('vote', token=poll.token) }}" method="post" class="vote-form"
         data-vote-status-url="{{ url_for('vote_status', token=poll.token) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label>
-            Nom et prénom
-            <input type="text" name="participant_name" placeholder="Ex: Sarah Martin"
-                value="{{ organizer_prefill_name }}" required>
-        </label>
+        <div class="vote-identity-grid">
+            <label>
+                Nom et prénom
+                <input type="text" name="participant_name" placeholder="Ex: Sarah Martin"
+                    value="{{ organizer_prefill_name }}" required>
+            </label>
 
-        <label>
-            Ton email
-            <input type="email" name="participant_email" placeholder="Ex: sarah@email.com"
-                value="{{ organizer_prefill_email }}">
-            <span class="meta">Optionnel (recommandé pour mieux éviter les doublons).</span>
-        </label>
+            <label>
+                <span class="field-label-row">
+                    <span>Email</span>
+                    <span class="meta field-inline-meta">Optionnel (utile pour éviter les doublons).</span>
+                </span>
+                <input type="email" name="participant_email" placeholder="Ex: sarah@email.com"
+                    value="{{ organizer_prefill_email }}">
+            </label>
+        </div>
 
         <p id="voteStatusMessage" class="meta" aria-live="polite"></p>
-
-        <label>
-            Commentaire / avis (optionnel)
-            <textarea name="comment" rows="2" maxlength="280"
-                placeholder="Ex: Je préfère le matin, ou Option B pour son coût.">{{ existing_comment }}</textarea>
-        </label>
 
         {% if poll.response_mode == 'single' %}
         <div class="slot-grid">
@@ -108,7 +70,7 @@
             </label>
             {% endfor %}
         </div>
-        {% elif poll.response_mode == 'multiple' %}
+        {% else %}
         <div class="slot-grid">
             {% for slot in slots %}
             <label class="slot-item vote-choice-card">
@@ -118,28 +80,13 @@
             </label>
             {% endfor %}
         </div>
-        {% else %}
-        <div class="slot-grid">
-            {% for slot in slots %}
-            <div class="slot-item">
-                <p class="slot-label">{{ slot.label }}</p>
-                <select name="choice_{{ slot.id }}">
-                    {% if poll.poll_type == 'opinion' %}
-                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}selected{% endif %}>
-                        👍 Pour</option>
-                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no' ) !='yes' %}selected{% endif %}>
-                        👎 Contre</option>
-                    {% else %}
-                    <option value="yes" {% if existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}selected{% endif %}>✅
-                        Oui</option>
-                    <option value="no" {% if existing_choice_by_slot.get(slot.id, 'no' ) !='yes' %}selected{% endif %}>❌
-                        Non</option>
-                    {% endif %}
-                </select>
-            </div>
-            {% endfor %}
-        </div>
         {% endif %}
+
+        <label>
+            Commentaire (optionnel)
+            <textarea name="comment" rows="2" maxlength="280"
+                placeholder="Ton avis en une phrase...">{{ existing_comment }}</textarea>
+        </label>
 
         <label class="consent-row">
             <input type="checkbox" name="rgpd_vote" required>
@@ -155,19 +102,6 @@
         <button type="submit">Enregistrer mon vote</button>
     </form>
     {% endif %}
-</section>
-
-<section class="card">
-    <h2>Résultats globaux</h2>
-    <div class="results-grid">
-        {% for row in summary %}
-        <article class="result-card">
-            <p class="slot-label">{{ row.label }}</p>
-            <p>✅ Oui: <strong>{{ row.yes_count }}</strong></p>
-            <p>❌ Non: <strong>{{ row.no_count }}</strong></p>
-        </article>
-        {% endfor %}
-    </div>
 </section>
 
 {% if admin_mode %}
@@ -191,16 +125,10 @@
                     <td>{{ participant_labels.get(participant, participant) }}</td>
                     <td>{{ comments.get(participant, '-') }}</td>
                     {% for slot in slots %}
-                    {% if poll.response_mode in ['single', 'multiple'] %}
                     {% set choice = matrix[participant].get(slot.id, '') %}
-                    {% else %}
-                    {% set choice = matrix[participant].get(slot.id, 'no') %}
-                    {% endif %}
                     <td>
                         {% if choice == 'yes' %}
                         ✅
-                        {% elif choice == 'no' %}
-                        ❌
                         {% else %}
                         —
                         {% endif %}
@@ -214,6 +142,52 @@
     {% else %}
     <p>Aucun vote pour l’instant.</p>
     {% endif %}
+
+    {% if not is_poll_owner %}
+    <form action="{{ url_for('admin_logout', token=poll.token) }}" method="post" class="inline-form"
+        style="margin-top:12px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Quitter le mode organisateur</button>
+    </form>
+    {% endif %}
 </section>
+{% endif %}
+
+<section class="card">
+    <h2>Résultats globaux</h2>
+    {% set ns = namespace(total_yes=0) %}
+    {% for item in summary %}
+    {% set ns.total_yes = ns.total_yes + item.yes_count %}
+    {% endfor %}
+    <div class="results-grid">
+        {% for row in summary %}
+        {% set rank = loop.index %}
+        {% set share_percent = ((row.yes_count * 100) / ns.total_yes) if ns.total_yes > 0 else 0 %}
+        {% set share_percent_display = share_percent | round(1) %}
+        {% set share_width = 6 if row.yes_count > 0 and share_percent < 6 else (share_percent | round(2)) %}
+        <article class="result-card result-visual-card">
+            <p class="result-rank">#{{ rank }}</p>
+            <p class="slot-label">{{ row.label }}</p>
+            <div class="result-metrics">
+                <span>🗳️ Sélections <strong>{{ row.yes_count }}</strong></span>
+                <span>📊 Part <strong>{{ share_percent_display }}%</strong></span>
+            </div>
+            <progress class="result-progress" value="{{ share_percent_display }}" max="100"
+                aria-label="{{ row.label }}: part {{ share_percent_display }}%"></progress>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+{% if not admin_mode %}
+<details class="card organizer-details">
+    <summary>Accès organisateur</summary>
+    <form action="{{ url_for('admin_login', token=poll.token) }}" method="post" class="inline-form"
+        style="margin-top:12px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="password" name="organizer_code" placeholder="Code organisateur" required>
+        <button type="submit">Accéder aux résultats détaillés</button>
+    </form>
+</details>
 {% endif %}
 {% endblock %}

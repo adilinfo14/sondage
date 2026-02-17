@@ -8,9 +8,35 @@
 </section>
 
 <section class="card">
+    <h2>Ajouter un utilisateur</h2>
+    <form action="{{ url_for('admin_create_user') }}" method="post" class="poll-form admin-create-user-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>
+            Email
+            <input type="email" name="email" placeholder="nouvel.utilisateur@email.com" required>
+        </label>
+        <label>
+            Mot de passe initial
+            <input type="password" name="password" minlength="8" placeholder="Minimum 8 caractères" required>
+        </label>
+        <label class="consent-row">
+            <input type="checkbox" name="is_active" checked>
+            <span>Compte actif</span>
+        </label>
+        <label class="consent-row">
+            <input type="checkbox" name="is_admin">
+            <span>Rôle administrateur</span>
+        </label>
+        <div class="form-actions">
+            <button type="submit">Créer l'utilisateur</button>
+        </div>
+    </form>
+</section>
+
+<section class="card">
     <h2>Comptes</h2>
     {% if users %}
-    <div class="table-wrap">
+    <div class="table-wrap users-table-wrap">
         <table>
             <thead>
                 <tr>
@@ -24,7 +50,7 @@
             </thead>
             <tbody>
                 {% for user in users %}
-                <tr>
+                <tr class="user-row">
                     <td>{{ user.email }}</td>
                     <td>{% if user.is_active %}Actif{% else %}Désactivé{% endif %}</td>
                     <td>{% if user.is_admin %}Administrateur{% else %}Utilisateur{% endif %}</td>
@@ -41,12 +67,14 @@
                         <div class="admin-actions">
                             <form action="{{ url_for('admin_toggle_user_active', user_id=user.id) }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit">{% if user.is_active %}Désactiver{% else %}Activer{% endif
+                                <button type="submit" class="admin-action-btn">{% if user.is_active %}Désactiver{% else
+                                    %}Activer{% endif
                                     %}</button>
                             </form>
                             <form action="{{ url_for('admin_toggle_user_admin', user_id=user.id) }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit">{% if user.is_admin %}Retirer admin{% else %}Donner admin{% endif
+                                <button type="submit" class="admin-action-btn">{% if user.is_admin %}Retirer admin{%
+                                    else %}Donner admin{% endif
                                     %}</button>
                             </form>
                         </div>

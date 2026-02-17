@@ -2,8 +2,8 @@
 
 {% block content %}
 <section class="card hero">
-    <p class="eyebrow">🗳️ Sondage style Sondage</p>
-    <h1>Crée un sondage RDV ou avis</h1>
+    <p class="eyebrow">🗳️ Outil de planification et de vote</p>
+    <h1>Créer un sondage professionnel</h1>
     <p class="sub">Prise de rendez-vous, vote d'équipe, choix d'idées: tout en un, avec accès organisateur sécurisé.</p>
 </section>
 
@@ -11,7 +11,7 @@
     <form id="createPollForm" action="{{ url_for('create_poll') }}" method="post" class="poll-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-        <label>
+        <label class="full-width">
             Titre du sondage
             <input type="text" name="title" placeholder="Ex: Réunion projet Mars" required>
         </label>
@@ -22,23 +22,18 @@
                 <option value="meeting" selected>📅 Réunion / RDV</option>
                 <option value="opinion">💡 Prise d’avis / décision</option>
                 <option value="event">🎉 Événement</option>
-                <option value="training">🎓 Formation</option>
-                <option value="shift">🕒 Planning / permanence</option>
-                <option value="meal">🍽️ Sortie / repas</option>
-                <option value="trip">✈️ Voyage / déplacement</option>
             </select>
         </label>
 
         <label>
             Mode de vote
             <select name="response_mode">
-                <option value="availability" selected>Disponibilités (Oui / Non)</option>
-                <option value="single">Choix unique (1 option parmi n)</option>
+                <option value="single" selected>Choix unique (1 option parmi n)</option>
                 <option value="multiple">Choix multiple (plusieurs options)</option>
             </select>
         </label>
 
-        <label>
+        <label class="full-width">
             Description (optionnelle)
             <textarea name="description" rows="3" placeholder="Contexte, durée, lien visio..."></textarea>
         </label>
@@ -62,16 +57,16 @@
             <input type="password" name="organizer_code" minlength="8" placeholder="Code secret" required>
         </label>
 
-        <label>
+        <label class="full-width">
             Emails des participants (optionnel)
             <textarea name="participant_emails" rows="3"
                 placeholder="Un email par ligne, ou séparés par virgule. Ex: alice@mail.com, bob@mail.com"></textarea>
         </label>
 
-        <label>
+        <label class="full-width">
             Créneaux / options (un par ligne)
             <textarea name="slots" rows="7"
-                placeholder="Ex RDV:\nLundi 19/02 - 10:00\nLundi 19/02 - 14:00\nMardi 20/02 - 09:30\n\nEx avis:\nOption A\nOption B\nOption C"
+                placeholder="Exemple réunion :&#10;Lundi 19/02 - 10:00&#10;Lundi 19/02 - 14:00&#10;Mardi 20/02 - 09:30&#10;&#10;Exemple avis :&#10;Option A&#10;Option B&#10;Option C"
                 required></textarea>
         </label>
 
@@ -88,7 +83,7 @@
         </label>
 
         <div class="form-actions">
-            <button type="button" id="previewPollBtn">Prévisualiser le sondage</button>
+            <button type="button" id="previewPollBtn">⚡ Prévisualisation live</button>
             <button type="submit" id="submitPollBtn">Créer le sondage</button>
         </div>
     </form>
@@ -100,15 +95,26 @@
             <h2 id="previewModalTitle">Prévisualisation avant création</h2>
             <button type="button" id="closePreviewModalBtn" class="modal-close-btn" aria-label="Fermer">✕</button>
         </div>
-        <p><strong id="previewTitle"></strong></p>
-        <p class="meta" id="previewCreator"></p>
-        <p class="meta" id="previewType"></p>
-        <p class="meta" id="previewMode"></p>
-        <p class="meta" id="previewDeadline"></p>
-        <p class="meta" id="previewDescription"></p>
-        <div>
-            <p class="slot-label">Options proposées</p>
-            <ul id="previewSlots"></ul>
+        <div class="preview-shell">
+            <section class="preview-panel preview-panel-hero">
+                <p class="eyebrow">Aperçu en temps réel</p>
+                <h3 id="previewTitle"></h3>
+                <p class="meta" id="previewCreator"></p>
+                <p class="meta" id="previewType"></p>
+                <p class="meta" id="previewMode"></p>
+                <p class="meta" id="previewDeadline"></p>
+                <p class="sub" id="previewDescription"></p>
+            </section>
+
+            <section class="preview-panel">
+                <p class="slot-label">Zone de vote simulée</p>
+                <div id="previewVoteOptions" class="preview-option-grid"></div>
+            </section>
+
+            <section class="preview-panel">
+                <p class="slot-label">Rendu des résultats théoriques</p>
+                <div id="previewResultOptions" class="preview-result-stack"></div>
+            </section>
         </div>
         <p class="sub">Si tout est correct, ferme cette fenêtre puis clique sur « Créer le sondage ».</p>
     </section>

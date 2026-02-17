@@ -41,7 +41,7 @@ DB_PATH = Path(os.environ.get("SONDAGE_DB_PATH", str(BASE_DIR / "sondage.db")))
 
 ALLOWED_CHOICES = {"yes", "no"}
 ALLOWED_POLL_TYPES = {"meeting", "opinion", "event", "training", "shift", "meal", "trip"}
-ALLOWED_RESPONSE_MODES = {"availability", "single", "multiple"}
+ALLOWED_RESPONSE_MODES = {"single", "multiple"}
 POLL_TYPE_LABELS = {
     "meeting": "📅 Réunion / RDV",
     "opinion": "💡 Prise d’avis / décision",
@@ -52,7 +52,6 @@ POLL_TYPE_LABELS = {
     "trip": "✈️ Voyage / déplacement",
 }
 RESPONSE_MODE_LABELS = {
-    "availability": "Disponibilités (Oui / Non)",
     "single": "Choix unique (1 option parmi n)",
     "multiple": "Choix multiple (plusieurs options)",
 }
@@ -531,7 +530,12 @@ def create_app() -> Flask:
                 matrix[key] = {}
                 participants.append(key)
             if key not in labels:
-                labels[key] = f"{name} ({email})" if email and name else (email or name)
+                if name:
+                    labels[key] = name
+                elif email:
+                    labels[key] = email.split("@", 1)[0]
+                else:
+                    labels[key] = "Participant"
             matrix[key][row["slot_id"]] = row["choice"]
         return participants, matrix, labels
 
@@ -705,6 +709,44 @@ def create_app() -> Flask:
         ).fetchall()
         return render_template("admin_users.html", users=users)
 
+    @app.post("/admin/users/create")
+    def admin_create_user():
+        if not validate_csrf():
+            flash("Session invalide. Recharge la page puis réessaie.", "error")
+            return redirect(url_for("admin_users"))
+
+        current_user = get_current_user()
+        if current_user is None or not bool(current_user["is_admin"]):
+            flash("Accès refusé: droits administrateur requis.", "error")
+            return redirect(url_for("home"))
+
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        is_admin_new = request.form.get("is_admin") == "on"
+        is_active_new = request.form.get("is_active") != "off"
+
+        if not EMAIL_REGEX.match(email):
+            flash("Email invalide.", "error")
+            return redirect(url_for("admin_users"))
+
+        if len(password) < 8:
+            flash("Le mot de passe doit contenir au moins 8 caractères.", "error")
+            return redirect(url_for("admin_users"))
+
+        if get_user_by_email(email) is not None:
+            flash("Un compte existe déjà avec cet email.", "error")
+            return redirect(url_for("admin_users"))
+
+        db = get_db()
+        now = datetime.utcnow().isoformat(timespec="seconds")
+        db.execute(
+            "INSERT INTO users (email, password_hash, is_active, is_admin, consent_auth_at, consent_auth_version, created_at) VALUES (?, ?, ?, ?, NULL, NULL, ?)",
+            (email, generate_password_hash(password), 1 if is_active_new else 0, 1 if is_admin_new else 0, now),
+        )
+        db.commit()
+        flash("Utilisateur ajouté.", "success")
+        return redirect(url_for("admin_users"))
+
     @app.post("/admin/users/<int:user_id>/toggle-active")
     def admin_toggle_user_active(user_id: int):
         if not validate_csrf():
@@ -762,10 +804,10 @@ def create_app() -> Flask:
 
         new_value = 0 if bool(target_user["is_admin"]) else 1
 
-        if new_value == 0:
-            admins_count = db.execute("SELECT COUNT(*) AS total FROM users WHERE is_admin = 1").fetchone()["total"]
-            if admins_count <= 1:
-                flash("Impossible: il doit rester au moins un administrateur.", "error")
+        if new_value == 0 and bool(target_user["is_active"]):
+            active_admins_count = db.execute("SELECT COUNT(*) AS total FROM users WHERE is_admin = 1 AND is_active = 1").fetchone()["total"]
+            if active_admins_count <= 1:
+                flash("Impossible: il doit rester au moins un administrateur actif.", "error")
                 return redirect(url_for("admin_users"))
 
         db.execute("UPDATE users SET is_admin = ? WHERE id = ?", (new_value, user_id))
@@ -789,7 +831,21 @@ def create_app() -> Flask:
             """
             SELECT
                 p.*,
-                COALESCE((SELECT COUNT(*) FROM votes v WHERE v.poll_id = p.id), 0) AS votes_count
+                COALESCE(
+                    (
+                        SELECT COUNT(*)
+                        FROM (
+                            SELECT DISTINCT
+                                CASE
+                                    WHEN COALESCE(TRIM(v.participant_email), '') <> '' THEN LOWER(TRIM(v.participant_email))
+                                    ELSE 'name:' || LOWER(TRIM(v.participant_name))
+                                END AS voter_key
+                            FROM votes v
+                            WHERE v.poll_id = p.id
+                        ) u
+                    ),
+                    0
+                ) AS votes_count
             FROM polls p
             WHERE p.created_by_user_id = ?
             ORDER BY COALESCE(p.archived_at, ''), p.created_at DESC
@@ -848,7 +904,7 @@ def create_app() -> Flask:
         description = request.form.get("description", "").strip()
         creator_name = request.form.get("creator_name", "").strip()
         poll_type = request.form.get("poll_type", "meeting").strip().lower()
-        response_mode = request.form.get("response_mode", "availability").strip().lower()
+        response_mode = request.form.get("response_mode", "single").strip().lower()
         deadline_input = request.form.get("deadline_at", "").strip()
         organizer_code = request.form.get("organizer_code", "")
         participant_emails_raw = request.form.get("participant_emails", "")
@@ -865,7 +921,7 @@ def create_app() -> Flask:
         if poll_type not in ALLOWED_POLL_TYPES:
             poll_type = "meeting"
         if response_mode not in ALLOWED_RESPONSE_MODES:
-            response_mode = "availability"
+            response_mode = "single"
 
         deadline_at = parse_deadline(deadline_input)
 
@@ -984,9 +1040,10 @@ def create_app() -> Flask:
         current_user = get_current_user()
         slots = get_poll_slots(poll["id"])
         summary = aggregate_results(poll["id"])
+        summary_sorted = sorted(summary, key=lambda row: (-int(row["yes_count"]), int(row["no_count"]), row["label"].lower()))
         participants, matrix, participant_labels = participant_rows(poll["id"])
         comments = participant_comments(poll["id"])
-        top_choice = recommendation(summary)
+        top_choice = recommendation(summary_sorted)
         admin_mode = is_admin_authenticated(poll)
         closed = is_deadline_passed(poll["deadline_at"])
 
@@ -1085,7 +1142,7 @@ def create_app() -> Flask:
             "poll.html",
             poll=poll,
             slots=slots,
-            summary=summary,
+            summary=summary_sorted,
             participants=participants if admin_mode else [],
             participant_labels=participant_labels if admin_mode else {},
             matrix=matrix if admin_mode else {},
@@ -1229,9 +1286,9 @@ def create_app() -> Flask:
                     (poll["id"], participant_name),
                 )
 
-        response_mode = (poll["response_mode"] or "availability").strip().lower()
+        response_mode = (poll["response_mode"] or "single").strip().lower()
         if response_mode not in ALLOWED_RESPONSE_MODES:
-            response_mode = "availability"
+            response_mode = "single"
 
         allowed_slot_ids = {slot["id"] for slot in slots}
         selected_slot_id: int | None = None
@@ -1260,15 +1317,10 @@ def create_app() -> Flask:
                 if slot["id"] != selected_slot_id:
                     continue
                 choice = "yes"
-            elif response_mode == "multiple":
+            else:
                 if slot["id"] not in selected_multiple:
                     continue
                 choice = "yes"
-            else:
-                choice_key = f"choice_{slot['id']}"
-                choice = request.form.get(choice_key, "no").strip().lower()
-                if choice not in ALLOWED_CHOICES:
-                    choice = "no"
 
             db.execute(
                 """

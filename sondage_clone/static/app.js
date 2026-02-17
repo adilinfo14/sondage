@@ -1,5 +1,32 @@
 const copyBtn = document.getElementById("copyLinkBtn");
 const shareInput = document.getElementById("shareUrl");
+const themeSelect = document.getElementById("themeSelect");
+
+if (themeSelect) {
+    const THEME_STORAGE_KEY = "sondage_theme";
+    const ALLOWED_THEMES = new Set(["default", "nature", "galaxy"]);
+
+    const applyTheme = (theme) => {
+        const html = document.documentElement;
+        if (!ALLOWED_THEMES.has(theme) || theme === "default") {
+            html.removeAttribute("data-theme");
+            return;
+        }
+        html.setAttribute("data-theme", theme);
+    };
+
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "default";
+    const initialTheme = ALLOWED_THEMES.has(savedTheme) ? savedTheme : "default";
+    themeSelect.value = initialTheme;
+    applyTheme(initialTheme);
+
+    themeSelect.addEventListener("change", () => {
+        const selectedTheme = themeSelect.value;
+        const safeTheme = ALLOWED_THEMES.has(selectedTheme) ? selectedTheme : "default";
+        localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
+        applyTheme(safeTheme);
+    });
+}
 
 if (copyBtn && shareInput) {
     copyBtn.addEventListener("click", async () => {
@@ -142,7 +169,10 @@ if (createPollForm && previewPollBtn && submitPollBtn && previewModal) {
     const previewMode = document.getElementById("previewMode");
     const previewDeadline = document.getElementById("previewDeadline");
     const previewDescription = document.getElementById("previewDescription");
-    const previewSlots = document.getElementById("previewSlots");
+    const previewVoteOptions = document.getElementById("previewVoteOptions");
+    const previewResultOptions = document.getElementById("previewResultOptions");
+    const previewRequiredFields = Array.from(createPollForm.querySelectorAll("[required]"))
+        .filter((field) => !(field instanceof HTMLInputElement && field.type === "checkbox"));
 
     const openPreviewModal = () => {
         if (closeTimer) {
@@ -179,31 +209,84 @@ if (createPollForm && previewPollBtn && submitPollBtn && previewModal) {
             .filter(Boolean)
             .slice(0, 30);
 
-        previewTitle.textContent = `Titre : ${title}`;
+        previewTitle.textContent = title;
         previewCreator.textContent = `Organisateur : ${creator}`;
         previewType.textContent = `Type : ${typeLabel}`;
         previewMode.textContent = `Mode : ${modeLabel}`;
         previewDeadline.textContent = `Date limite : ${deadline}`;
-        previewDescription.textContent = `Description : ${description}`;
+        previewDescription.textContent = description;
 
-        previewSlots.innerHTML = "";
-        if (slots.length === 0) {
-            const li = document.createElement("li");
-            li.textContent = "Aucune option détectée";
-            previewSlots.appendChild(li);
-        } else {
-            slots.forEach((slot) => {
-                const li = document.createElement("li");
-                li.textContent = slot;
-                previewSlots.appendChild(li);
-            });
+        if (previewVoteOptions) {
+            previewVoteOptions.innerHTML = "";
+            if (slots.length === 0) {
+                const empty = document.createElement("p");
+                empty.className = "meta";
+                empty.textContent = "Aucune option détectée.";
+                previewVoteOptions.appendChild(empty);
+            } else {
+                slots.slice(0, 8).forEach((slot) => {
+                    const option = document.createElement("article");
+                    option.className = "preview-option-card";
+
+                    const marker = document.createElement("span");
+                    marker.className = "preview-option-marker";
+                    marker.textContent = modeInput?.value === "multiple" ? "☑" : "◉";
+
+                    const label = document.createElement("p");
+                    label.className = "preview-option-label";
+                    label.textContent = slot;
+
+                    option.append(marker, label);
+                    previewVoteOptions.appendChild(option);
+                });
+            }
+        }
+
+        if (previewResultOptions) {
+            previewResultOptions.innerHTML = "";
+            if (slots.length === 0) {
+                const empty = document.createElement("p");
+                empty.className = "meta";
+                empty.textContent = "Les barres de résultat s’afficheront ici.";
+                previewResultOptions.appendChild(empty);
+            } else {
+                const visibleSlots = slots.slice(0, 6);
+                const sharePercent = Math.round((100 / visibleSlots.length) * 10) / 10;
+
+                visibleSlots.forEach((slot) => {
+
+                    const item = document.createElement("article");
+                    item.className = "preview-result-item";
+
+                    const label = document.createElement("p");
+                    label.className = "preview-option-label";
+                    label.textContent = slot;
+
+                    const bar = document.createElement("div");
+                    bar.className = "preview-result-bar";
+
+                    const shareBar = document.createElement("span");
+                    shareBar.className = "preview-result-share";
+                    shareBar.style.width = `${Math.max(4, sharePercent)}%`;
+
+                    const meta = document.createElement("p");
+                    meta.className = "meta";
+                    meta.textContent = `Part théorique par choix: ${sharePercent}% (sur ${visibleSlots.length} choix)`;
+
+                    bar.append(shareBar);
+                    item.append(label, bar, meta);
+                    previewResultOptions.appendChild(item);
+                });
+            }
         }
 
         openPreviewModal();
     };
 
     previewPollBtn.addEventListener("click", () => {
-        if (!createPollForm.reportValidity()) {
+        const firstInvalid = previewRequiredFields.find((field) => !field.checkValidity());
+        if (firstInvalid) {
+            firstInvalid.reportValidity();
             return;
         }
         renderPreview();
