@@ -114,7 +114,8 @@
                 {% if minimalist_poll_view and app_auth_enabled and not app_auth_logged_in %}
                 <a class="nav-btn" href="{{ url_for('auth_register', next=request.path) }}">Inscription</a>
                 {% else %}
-                <button type="button" id="openFeedbackBtn" class="feedback-nav-btn" aria-label="Ouvrir le formulaire de feedback">💬 Feedback</button>
+                <button type="button" id="openFeedbackBtn" class="feedback-nav-btn"
+                    aria-label="Ouvrir le formulaire de feedback">💬 Feedback</button>
                 {% endif %}
                 <div class="theme-picker">
                     <label for="themeSelect">Thème</label>
@@ -129,10 +130,9 @@
 
         {% if app_auth_enabled and app_auth_logged_in %}
         <section class="card" style="padding:10px 14px;">
-            <form action="{{ url_for('auth_logout') }}" method="post"
-                style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <form action="{{ url_for('auth_logout') }}" method="post" class="auth-session-row">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <span class="sub" style="margin:0;">
+                <span class="sub auth-session-text">
                     Connecté : {{ app_auth_user_email }}
                     {% if app_auth_user_is_admin %}
                     · <a href="{{ url_for('admin_users') }}">Administration comptes</a>
