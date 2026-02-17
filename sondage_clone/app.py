@@ -54,6 +54,7 @@ POLL_TYPE_LABELS = {
 RESPONSE_MODE_LABELS = {
     "single": "Choix unique (1 option parmi n)",
     "multiple": "Choix multiple (plusieurs options)",
+    "availability": "Choix multiple (plusieurs options)",
 }
 FEEDBACK_COMPONENTS = {
     "navigation",
@@ -399,6 +400,14 @@ def create_app() -> Flask:
             return parsed.isoformat(timespec="minutes")
         except ValueError:
             return None
+
+    def normalize_response_mode(raw_mode: str | None) -> str:
+        mode = (raw_mode or "").strip().lower()
+        if mode == "availability":
+            return "multiple"
+        if mode in ALLOWED_RESPONSE_MODES:
+            return mode
+        return "single"
 
     def is_deadline_passed(deadline_at: str | None) -> bool:
         if not deadline_at:
@@ -904,7 +913,7 @@ def create_app() -> Flask:
         description = request.form.get("description", "").strip()
         creator_name = request.form.get("creator_name", "").strip()
         poll_type = request.form.get("poll_type", "meeting").strip().lower()
-        response_mode = request.form.get("response_mode", "single").strip().lower()
+        response_mode = normalize_response_mode(request.form.get("response_mode", "single"))
         deadline_input = request.form.get("deadline_at", "").strip()
         organizer_code = request.form.get("organizer_code", "")
         participant_emails_raw = request.form.get("participant_emails", "")
@@ -920,9 +929,6 @@ def create_app() -> Flask:
 
         if poll_type not in ALLOWED_POLL_TYPES:
             poll_type = "meeting"
-        if response_mode not in ALLOWED_RESPONSE_MODES:
-            response_mode = "single"
-
         deadline_at = parse_deadline(deadline_input)
 
         if deadline_input and deadline_at is None:
@@ -1138,6 +1144,8 @@ def create_app() -> Flask:
         replace_vote_default_checked = has_existing_vote and edit_vote_mode
         voter_identity_label = voter_identity_email or voter_identity_name
 
+        poll_response_mode = normalize_response_mode(poll["response_mode"])
+
         return render_template(
             "poll.html",
             poll=poll,
@@ -1162,6 +1170,8 @@ def create_app() -> Flask:
             replace_vote_default_checked=replace_vote_default_checked,
             existing_choice_by_slot=existing_choice_by_slot,
             existing_comment=existing_comment,
+            poll_response_mode=poll_response_mode,
+            poll_response_mode_label=RESPONSE_MODE_LABELS.get(poll_response_mode, poll_response_mode),
         )
 
     @app.post("/poll/<token>/admin-login")
@@ -1286,9 +1296,7 @@ def create_app() -> Flask:
                     (poll["id"], participant_name),
                 )
 
-        response_mode = (poll["response_mode"] or "single").strip().lower()
-        if response_mode not in ALLOWED_RESPONSE_MODES:
-            response_mode = "single"
+        response_mode = normalize_response_mode(poll["response_mode"])
 
         allowed_slot_ids = {slot["id"] for slot in slots}
         selected_slot_id: int | None = None

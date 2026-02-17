@@ -8,8 +8,7 @@
     <p class="sub">{{ poll.description }}</p>
     {% endif %}
     <p class="meta meta-inline">
-        {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }} · {{ response_mode_labels.get(poll.response_mode,
-        poll.response_mode) }}
+        {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }} · {{ poll_response_mode_label }}
         {% if poll.deadline_at %}
         · Date limite: {{ poll.deadline_at.replace('T', ' ') }} {% if closed %}(clôturé){% endif %}
         {% endif %}
@@ -59,7 +58,7 @@
 
         <p id="voteStatusMessage" class="meta" aria-live="polite"></p>
 
-        {% if poll.response_mode == 'single' %}
+        {% if poll_response_mode == 'single' %}
         <div class="slot-grid">
             {% for slot in slots %}
             <label class="slot-item vote-choice-card">
@@ -164,8 +163,8 @@
         {% set rank = loop.index %}
         {% set share_percent = ((row.yes_count * 100) / ns.total_yes) if ns.total_yes > 0 else 0 %}
         {% set share_percent_display = share_percent | round(1) %}
-        {% set share_width = 6 if row.yes_count > 0 and share_percent < 6 else (share_percent | round(2)) %}
-        <article class="result-card result-visual-card">
+        {% set share_width = 6 if row.yes_count > 0 and share_percent < 6 else (share_percent | round(2)) %} <article
+            class="result-card result-visual-card">
             <p class="result-rank">#{{ rank }}</p>
             <p class="slot-label">{{ row.label }}</p>
             <div class="result-metrics">
@@ -174,8 +173,8 @@
             </div>
             <progress class="result-progress" value="{{ share_percent_display }}" max="100"
                 aria-label="{{ row.label }}: part {{ share_percent_display }}%"></progress>
-        </article>
-        {% endfor %}
+            </article>
+            {% endfor %}
     </div>
 </section>
 
