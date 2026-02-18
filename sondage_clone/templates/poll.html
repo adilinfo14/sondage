@@ -168,8 +168,8 @@
         {% set rank_label = (rank ~ 'er') if rank == 1 else (rank ~ 'ème') %}
         {% set share_percent = ((row.yes_count * 100) / ns.total_yes) if ns.total_yes > 0 else 0 %}
         {% set share_percent_display = share_percent | round(1) %}
-        {% set share_width = 6 if row.yes_count > 0 and share_percent < 6 else (share_percent | round(2)) %}
-        <article class="result-card result-visual-card">
+        {% set share_width = 6 if row.yes_count > 0 and share_percent < 6 else (share_percent | round(2)) %} <article
+            class="result-card result-visual-card">
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <span class="result-rank">{{ rank_label }}</span>
                 <span class="slot-label" style="font-weight:600;">{{ row.label }}</span>
@@ -179,7 +179,7 @@
             </div>
             <progress class="result-progress" value="{{ share_percent_display }}" max="100"
                 aria-label="{{ row.label }}: part {{ share_percent_display }}%"></progress>
-        </article>
+            </article>
             {% endfor %}
     </div>
 </section>
