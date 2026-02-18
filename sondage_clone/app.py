@@ -1074,6 +1074,43 @@ def create_app() -> Flask:
             feedback_status_labels=FEEDBACK_STATUS_LABELS,
         )
 
+    @app.get("/admin/stats")
+    def admin_stats():
+        current_user = get_current_user()
+        if current_user is None:
+            return redirect(url_for("auth_login", next=request.path))
+        if not bool(current_user["is_admin"]):
+            flash("Accès refusé: droits administrateur requis.", "error")
+            return redirect(url_for("home"))
+
+        db = get_db()
+        # Nombre de sondages créés
+        total_polls = db.execute("SELECT COUNT(*) FROM polls").fetchone()[0]
+        # Nombre de sondages archivés
+        archived_polls = db.execute("SELECT COUNT(*) FROM polls WHERE archived_at IS NOT NULL").fetchone()[0]
+        # Nombre de votes global
+        total_votes = db.execute("SELECT COUNT(*) FROM votes").fetchone()[0]
+        # Nombre de votes par sondage
+        votes_per_poll = db.execute("SELECT poll_id, COUNT(*) as vote_count FROM votes GROUP BY poll_id").fetchall()
+        # Classement des créateurs de sondages (par nombre de sondages créés)
+        creator_ranking = db.execute("SELECT creator_name, COUNT(*) as poll_count FROM polls WHERE creator_name IS NOT NULL GROUP BY creator_name ORDER BY poll_count DESC LIMIT 10").fetchall()
+
+        # Pour affichage votes par sondage (titre + nombre)
+        poll_titles = {row["id"]: row["title"] for row in db.execute("SELECT id, title FROM polls").fetchall()}
+        votes_per_poll_list = [
+            {"poll_id": row["poll_id"], "title": poll_titles.get(row["poll_id"], str(row["poll_id"])), "vote_count": row["vote_count"]}
+            for row in votes_per_poll
+        ]
+
+        return render_template(
+            "admin_stats.html",
+            total_polls=total_polls,
+            archived_polls=archived_polls,
+            total_votes=total_votes,
+            votes_per_poll=votes_per_poll_list,
+            creator_ranking=creator_ranking,
+        )
+
     @app.get("/admin/feedbacks/<int:feedback_id>")
     def admin_feedback_detail(feedback_id: int):
         current_user = get_current_user()

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">📊 Administration</p>
+    <h1>Statistiques de la plateforme</h1>
+    <p class="sub">Vue d'ensemble des sondages, votes et créateurs.</p>
+</section>
+
+<section class="card">
+    <h2>Résumé</h2>
+    <ul>
+        <li><strong>{{ total_polls }}</strong> sondages créés</li>
+        <li><strong>{{ archived_polls }}</strong> sondages archivés</li>
+        <li><strong>{{ total_votes }}</strong> votes enregistrés</li>
+    </ul>
+</section>
+
+<section class="card">
+    <h2>Votes par sondage</h2>
+    {% if votes_per_poll %}
+    <div class="table-wrap users-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Sondage</th>
+                    <th>Votes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for poll in votes_per_poll %}
+                <tr>
+                    <td>{{ poll.title }}</td>
+                    <td>{{ poll.vote_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Aucun vote enregistré.</p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <h2>Classement des créateurs</h2>
+    {% if creator_ranking %}
+    <div class="table-wrap users-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Créateur</th>
+                    <th>Sondages créés</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in creator_ranking %}
+                <tr>
+                    <td>{{ row.creator_name }}</td>
+                    <td>{{ row.poll_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Aucun créateur trouvé.</p>
+    {% endif %}
+</section>
+{% endblock %}

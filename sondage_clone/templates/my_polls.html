@@ -12,21 +12,26 @@
         {% for poll in active_polls %}
         <article class="result-card poll-card">
             <p class="slot-label">{{ poll.title }}</p>
-            <p class="meta">Type: {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
-            <p class="meta">Mode: {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
-            <p class="meta">Participants votants: {{ poll.votes_count }}</p>
-            <p class="meta">Créé le: {{ poll.created_at | datetime_fr }}</p>
-            <p><a href="{{ url_for('view_poll', token=poll.token) }}">Ouvrir le sondage</a></p>
-            <div class="poll-card-actions">
-                <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post"
-                    class="poll-card-action-form">
+            <p class="meta">Type : {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
+            <p class="meta">Mode : {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
+            <p class="meta">Participants votants : {{ poll.votes_count }}</p>
+            <p class="meta">Créé le : {{ poll.created_at | datetime_fr }}</p>
+            <div class="poll-card-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <a href="{{ url_for('view_poll', token=poll.token) }}" class="btn-poll-action poll-action-open" title="Voir et partager le sondage">
+                    <span>🔗</span> Ouvrir
+                </a>
+                {% if poll.votes_count == 0 %}
+                <a href="{{ url_for('edit_poll', token=poll.token) }}" class="btn-poll-action poll-action-edit" title="Modifier ce sondage">
+                    <span>✏️</span> Modifier
+                </a>
+                {% endif %}
+                <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post" class="poll-card-action-form" style="margin:0;display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="action" value="archive">
-                    <button type="submit">Archiver</button>
+                    <button type="submit" class="btn-poll-action poll-action-archive" title="Archiver ce sondage">
+                        <span>📦</span> Archiver
+                    </button>
                 </form>
-                {% if poll.votes_count == 0 %}
-                <a href="{{ url_for('edit_poll', token=poll.token) }}" class="poll-card-action-link">Modifier</a>
-                {% endif %}
             </div>
         </article>
         {% endfor %}
