@@ -25,6 +25,9 @@ services:
       SMTP_FROM_EMAIL: "contact@example.com"
       SMTP_FROM_NAME: "Sondage-noschoixpourvous"
       FEEDBACK_TO_EMAIL: "contact@example.com"
+      LEGAL_PUBLISHER_NAME: "TKONSULTING"
+      LEGAL_SIREN_SIRET: "948370317"
+      LEGAL_CONTACT_EMAIL: "tkonsulting79@gmail.com"
     ports:
       - "127.0.0.1:5050:5050"
     volumes:
