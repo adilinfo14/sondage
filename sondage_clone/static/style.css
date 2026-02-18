@@ -2690,12 +2690,17 @@ td:first-child {
 }
 
 .nav-card {
+    position: relative;
+    z-index: 40;
+    overflow: visible;
     padding: 10px 14px;
     background: var(--card);
     border: 1px solid var(--card-border);
 }
 
 .top-nav {
+    position: relative;
+    z-index: 41;
     display: flex;
     gap: 10px;
     flex-wrap: nowrap;
@@ -2863,7 +2868,7 @@ td:first-child {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
-    z-index: 20;
+    z-index: 120;
     min-width: 170px;
     display: grid;
     gap: 6px;
@@ -2878,6 +2883,38 @@ td:first-child {
 .admin-submenu-link {
     width: 100%;
     justify-content: flex-start;
+}
+
+.session-card {
+    padding: 6px 12px;
+    border-radius: 14px;
+}
+
+.auth-session-row-compact {
+    gap: 8px;
+    min-height: 34px;
+}
+
+.session-user-pill {
+    margin: 0;
+    min-width: 0;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-tight);
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-user-pill strong {
+    color: var(--text);
+    font-weight: var(--fw-semibold);
+}
+
+.session-logout-btn {
+    min-height: 34px;
+    padding: 7px 12px;
+    font-size: var(--fs-body-sm);
 }
 
 .vote-status-ok {
@@ -3130,6 +3167,21 @@ td:first-child {
 
     .auth-session-row .logout-btn {
         width: 100%;
+    }
+
+    .auth-session-row.auth-session-row-compact {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .auth-session-row.auth-session-row-compact .session-user-pill {
+        flex: 1 1 220px;
+    }
+
+    .auth-session-row.auth-session-row-compact .session-logout-btn {
+        width: auto;
+        margin-left: auto;
     }
 
     .feedback-fab {

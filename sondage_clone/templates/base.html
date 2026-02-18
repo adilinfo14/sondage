@@ -167,13 +167,13 @@
         </section>
 
         {% if app_auth_enabled and app_auth_logged_in %}
-        <section class="card" style="padding:10px 14px;">
-            <form action="{{ url_for('auth_logout') }}" method="post" class="auth-session-row">
+        <section class="card session-card">
+            <form action="{{ url_for('auth_logout') }}" method="post" class="auth-session-row auth-session-row-compact">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <span class="sub auth-session-text">
-                    Connecté : {{ app_auth_user_email }}
+                <span class="auth-session-text session-user-pill" title="{{ app_auth_user_email }}">
+                    Connecté · <strong>{{ app_auth_user_email }}</strong>
                 </span>
-                <button type="submit" class="logout-btn">Déconnexion</button>
+                <button type="submit" class="logout-btn session-logout-btn">Déconnexion</button>
             </form>
         </section>
         {% endif %}
