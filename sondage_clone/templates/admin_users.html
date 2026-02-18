@@ -56,8 +56,9 @@
                     <td>{% if user.is_admin %}Administrateur{% else %}Utilisateur{% endif %}</td>
                     <td>
                         {% if user.consent_auth_at %}
-                        {{ user.consent_auth_at | datetime_fr }}{% if user.consent_auth_version %} ({{ user.consent_auth_version }}){%
-                        endif %}
+                        <span {% if user.consent_auth_version %}title="Version RGPD: {{ user.consent_auth_version }}"{% endif %}>
+                            {{ user.consent_auth_at | datetime_fr }}
+                        </span>
                         {% else %}
                         Non enregistré
                         {% endif %}
@@ -81,7 +82,8 @@
                             </form>
                             <form action="{{ url_for('admin_send_password_reset', user_id=user.id) }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="admin-action-btn">Envoyer mail mot de passe</button>
+                                <button type="submit" class="admin-action-btn"
+                                    title="Envoyer un email pour définir ou changer le mot de passe">Envoyer lien MDP</button>
                             </form>
                         </div>
                     </td>

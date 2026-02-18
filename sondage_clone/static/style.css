@@ -1,4 +1,22 @@
 :root {
+    --font-family-base: "Inter", system-ui, sans-serif;
+    --fs-title-1: clamp(1.6rem, 4vw, 2.4rem);
+    --fs-title-2: clamp(1.24rem, 2.2vw, 1.56rem);
+    --fs-body: 1rem;
+    --fs-body-sm: 0.92rem;
+    --fs-label: 0.95rem;
+    --fs-button: 0.96rem;
+    --fs-nav: 0.94rem;
+    --fs-meta: 0.95rem;
+    --fs-caption: 0.82rem;
+    --lh-tight: 1.2;
+    --lh-base: 1.45;
+    --lh-relaxed: 1.6;
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fw-extrabold: 800;
     --bg-1: #fff8ef;
     --bg-2: #fff8ef;
     --bg-spot-1: #fff8ef;
@@ -132,7 +150,9 @@ body {
     margin: 0;
     min-height: 100vh;
     color: var(--text);
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: var(--font-family-base);
+    font-size: var(--fs-body);
+    line-height: var(--lh-base);
     background: var(--bg-1);
 }
 
@@ -1724,24 +1744,29 @@ body {
 
 .hero h1 {
     margin: 8px 0;
-    line-height: 1.1;
-    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    line-height: var(--lh-tight);
+    font-size: var(--fs-title-1);
+    font-weight: var(--fw-extrabold);
     overflow-wrap: anywhere;
 }
 
 .eyebrow {
     margin: 0;
     color: var(--muted);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-semibold);
 }
 
 .sub,
 .meta {
     color: var(--muted);
+    font-size: var(--fs-meta);
+    line-height: var(--lh-base);
 }
 
 a {
     color: var(--link);
-    font-weight: 600;
+    font-weight: var(--fw-semibold);
 }
 
 a:hover {
@@ -1887,8 +1912,8 @@ a:hover {
 
 #createPollForm>label:not(.consent-row)::before {
     content: "Phase 00 · Pipeline";
-    font-size: 0.75rem;
-    font-weight: 800;
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-extrabold);
     letter-spacing: 0.02em;
     color: var(--accent-2);
     display: inline-flex;
@@ -2000,7 +2025,9 @@ a:hover {
 label {
     display: grid;
     gap: 8px;
-    font-weight: 650;
+    font-size: var(--fs-label);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-semibold);
     color: var(--text);
 }
 
@@ -2013,7 +2040,8 @@ label {
 
 .field-inline-meta {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-base);
     white-space: nowrap;
 }
 
@@ -2051,8 +2079,8 @@ textarea::placeholder {
     border: 1px solid var(--field-border);
     background: var(--field-bg);
     color: var(--text);
-    font-size: 1rem;
-    line-height: 1.35;
+    font-size: var(--fs-body);
+    line-height: var(--lh-base);
 }
 
 .poll-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
@@ -2066,7 +2094,7 @@ textarea::placeholder {
 
 .poll-form input[type="datetime-local"],
 .vote-form input[type="datetime-local"] {
-    line-height: 1.2;
+    line-height: var(--lh-tight);
     padding-right: 12px;
 }
 
@@ -2085,13 +2113,14 @@ textarea[name="slots"] {
 }
 
 textarea[name="slots"]::placeholder {
-    font-size: 0.88rem;
-    line-height: 1.2;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-tight);
 }
 
 .logout-btn {
     padding: 9px 12px;
-    font-size: 0.98rem;
+    font-size: var(--fs-button);
+    font-weight: var(--fw-bold);
     min-height: 38px;
 }
 
@@ -2100,7 +2129,9 @@ button {
     border-radius: 12px;
     padding: 12px 16px;
     cursor: pointer;
-    font-weight: 800;
+    font-size: var(--fs-button);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-extrabold);
     color: white;
     background: var(--accent);
     box-shadow: 0 6px 14px rgba(44, 71, 152, 0.25);
@@ -2156,8 +2187,8 @@ textarea:focus-visible {
 }
 
 .consent-text-compact {
-    font-size: 0.82rem;
-    line-height: 1.2;
+    font-size: var(--fs-caption);
+    line-height: var(--lh-tight);
     white-space: nowrap;
 }
 
@@ -2189,7 +2220,8 @@ textarea:focus-visible {
 
 .vote-choice-label {
     margin: 0;
-    line-height: 1.4;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-base);
 }
 
 .form-actions {
@@ -2274,7 +2306,9 @@ textarea:focus-visible {
 
 .preview-panel-hero h3 {
     margin: 4px 0 8px;
-    font-size: 1.2rem;
+    font-size: var(--fs-title-2);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-bold);
 }
 
 .preview-option-grid {
@@ -2295,12 +2329,14 @@ textarea:focus-visible {
 
 .preview-option-marker {
     color: var(--accent-2);
-    font-weight: 800;
+    font-weight: var(--fw-extrabold);
 }
 
 .preview-option-label {
     margin: 0;
-    font-weight: 650;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-base);
+    font-weight: var(--fw-semibold);
 }
 
 .preview-result-stack {
@@ -2432,7 +2468,7 @@ body.modal-open {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    font-size: 0.92rem;
+    font-size: var(--fs-body-sm);
     color: var(--muted);
 }
 
@@ -2442,7 +2478,9 @@ body.modal-open {
 
 .result-rank {
     margin: 0;
-    font-weight: 800;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-extrabold);
     color: var(--accent-2);
 }
 
@@ -2499,7 +2537,9 @@ body.modal-open {
 
 .slot-label {
     margin: 0 0 8px;
-    font-weight: 700;
+    font-size: var(--fs-label);
+    line-height: var(--lh-base);
+    font-weight: var(--fw-bold);
 }
 
 .flash-stack {
@@ -2510,7 +2550,9 @@ body.modal-open {
 .flash {
     border-radius: 12px;
     padding: 10px 12px;
-    font-weight: 600;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-base);
+    font-weight: var(--fw-semibold);
 }
 
 .flash-success {
@@ -2564,6 +2606,8 @@ td {
     border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 9px 8px;
     text-align: center;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-base);
 }
 
 th:first-child,
@@ -2572,9 +2616,10 @@ td:first-child {
 }
 
 .admin-actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 8px;
+    min-width: 164px;
 }
 
 .admin-actions form {
@@ -2582,7 +2627,14 @@ td:first-child {
 }
 
 .admin-action-btn {
-    min-width: 128px;
+    width: 100%;
+    min-width: 164px;
+    min-height: 40px;
+    padding: 9px 12px;
+    font-size: var(--fs-button);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-bold);
+    white-space: nowrap;
     text-align: center;
 }
 
@@ -2618,7 +2670,9 @@ td:first-child {
 
 .organizer-details summary {
     cursor: pointer;
-    font-weight: 700;
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-base);
+    font-weight: var(--fw-bold);
 }
 
 @media (max-width: 700px) {
@@ -2670,8 +2724,8 @@ td:first-child {
     background: var(--surface-soft);
     border: 1px solid var(--surface-soft-border);
     color: var(--text);
-    font-weight: 800;
-    font-size: 1.05rem;
+    font-weight: var(--fw-extrabold);
+    font-size: var(--fs-button);
     box-shadow: none;
 }
 
@@ -2682,9 +2736,9 @@ td:first-child {
 }
 
 .theme-picker label {
-    font-size: 0.85rem;
+    font-size: var(--fs-body-sm);
     color: #102033 !important;
-    font-weight: 800;
+    font-weight: var(--fw-extrabold);
     display: inline;
 }
 
@@ -2728,15 +2782,15 @@ td:first-child {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 9px 14px;
-    font-size: 0.98rem;
+    padding: 8px 12px;
+    font-size: var(--fs-nav);
     border-radius: 999px;
     border: 1px solid var(--surface-soft-border);
     background: var(--surface-soft);
     color: var(--text);
     text-decoration: none;
-    font-weight: 800;
-    line-height: 1;
+    font-weight: var(--fw-extrabold);
+    line-height: var(--lh-tight);
     transition: background 160ms ease, border-color 160ms ease, transform 160ms ease, color 160ms ease;
 }
 
@@ -2758,11 +2812,11 @@ td:first-child {
     justify-content: center;
     border: none;
     border-radius: 999px;
-    padding: 9px 14px;
-    font-size: 0.98rem;
+    padding: 8px 12px;
+    font-size: var(--fs-nav);
     cursor: pointer;
-    font-weight: 800;
-    line-height: 1;
+    font-weight: var(--fw-extrabold);
+    line-height: var(--lh-tight);
     color: #ffffff;
     background: var(--accent);
     box-shadow: 0 6px 14px rgba(44, 71, 152, 0.25);
@@ -2807,8 +2861,8 @@ td:first-child {
     align-items: center;
     border-radius: 999px;
     padding: 4px 10px;
-    font-size: 0.82rem;
-    font-weight: 700;
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-bold);
     border: 1px solid transparent;
 }
 
@@ -2860,8 +2914,8 @@ td:first-child {
 }
 
 @media (max-width: 700px) {
-    .hero h1 {
-        font-size: clamp(1.35rem, 7vw, 1.9rem);
+    :root {
+        --fs-title-1: clamp(1.35rem, 7vw, 1.9rem);
     }
 
     input,
@@ -2929,14 +2983,14 @@ td:first-child {
 
     .top-nav-menu {
         display: none;
-        margin-top: 10px;
-        padding-top: 10px;
+        margin-top: 8px;
+        padding-top: 8px;
         border-top: 1px solid var(--surface-soft-border);
     }
 
     .top-nav-menu[data-open="true"] {
         display: grid;
-        gap: 8px;
+        gap: 6px;
     }
 
     .top-nav-menu .nav-btn,
@@ -2944,13 +2998,16 @@ td:first-child {
         width: 100%;
         justify-content: center;
         text-align: center;
+        min-height: 36px;
+        padding: 8px 10px;
+        font-size: var(--fs-nav);
     }
 
     .top-nav-extras {
         margin-left: 0;
-        margin-top: 10px;
+        margin-top: 8px;
         display: grid;
-        gap: 8px;
+        gap: 6px;
     }
 
     .top-nav-extras .feedback-nav-btn,
@@ -2960,10 +3017,20 @@ td:first-child {
         min-width: 0;
     }
 
+    .top-nav-extras .feedback-nav-btn {
+        min-height: 36px;
+        padding: 8px 10px;
+    }
+
     .top-nav-extras .theme-picker {
         margin-left: 0;
         display: grid;
         gap: 6px;
+    }
+
+    .top-nav-extras .theme-picker select {
+        min-height: 36px;
+        padding: 7px 10px;
     }
 
     .form-actions {
@@ -3066,8 +3133,8 @@ td:first-child {
         border-radius: 14px;
     }
 
-    .hero h1 {
-        font-size: clamp(1.2rem, 7.2vw, 1.55rem);
+    :root {
+        --fs-title-1: clamp(1.2rem, 7.2vw, 1.55rem);
     }
 
     .poll-form,
@@ -3103,17 +3170,17 @@ td:first-child {
 
     .slot-label,
     .vote-choice-label {
-        font-size: 0.92rem;
-        line-height: 1.3;
+        font-size: var(--fs-body-sm);
+        line-height: var(--lh-tight);
     }
 
     .result-metrics {
-        font-size: 0.86rem;
+        font-size: var(--fs-caption);
         gap: 2px;
     }
 
     .result-rank {
-        font-size: 0.92rem;
+        font-size: var(--fs-body-sm);
     }
 
     .vote-form button[type="submit"] {
@@ -4011,7 +4078,7 @@ td:first-child {
     min-height: 40px;
     min-width: 180px;
     padding: 9px 12px;
-    font-size: 1rem;
+    font-size: var(--fs-button);
 }
 
 @keyframes form-canary-left-play {
