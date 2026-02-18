@@ -76,6 +76,13 @@ FEEDBACK_COMPONENT_LABELS = {
     "performance": "Performance",
     "other": "Autre",
 }
+FEEDBACK_STATUSES = {"new", "in_progress", "resolved", "closed"}
+FEEDBACK_STATUS_LABELS = {
+    "new": "Nouveau",
+    "in_progress": "En cours",
+    "resolved": "Résolu",
+    "closed": "Clôturé",
+}
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 DEFAULT_CONSENT_VERSION = "v1.0-2026-02-15"
 
@@ -178,6 +185,19 @@ def create_app() -> Flask:
 
         g.current_user = user
         return user
+
+    def log_auth_consent_event(user_id: int, event_type: str) -> None:
+        db = get_db()
+        source_ip = (request.headers.get("X-Forwarded-For", "") or "").split(",")[0].strip() or (request.remote_addr or "")
+        user_agent = request.headers.get("User-Agent", "")[:250]
+        now = datetime.utcnow().isoformat(timespec="seconds")
+        db.execute(
+            """
+            INSERT INTO auth_consent_events (user_id, event_type, consent_version, consent_at, source_ip, user_agent, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (user_id, event_type, consent_version, now, source_ip or None, user_agent or None, now),
+        )
 
     def app_session_authenticated() -> bool:
         return get_current_user() is not None
@@ -305,10 +325,11 @@ def create_app() -> Flask:
         submitted_by_user_id: int | None,
     ) -> None:
         db = get_db()
+        now = datetime.utcnow().isoformat(timespec="seconds")
         db.execute(
             """
-            INSERT INTO feedbacks (component, message, sender_name, sender_email, page_url, submitted_by_user_id, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO feedbacks (component, message, sender_name, sender_email, page_url, submitted_by_user_id, status, status_updated_at, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 component,
@@ -317,7 +338,9 @@ def create_app() -> Flask:
                 sender_email or None,
                 page_url or None,
                 submitted_by_user_id,
-                datetime.utcnow().isoformat(timespec="seconds"),
+                "new",
+                now,
+                now,
             ),
         )
         db.commit()
@@ -401,8 +424,22 @@ def create_app() -> Flask:
                 sender_email TEXT,
                 page_url TEXT,
                 submitted_by_user_id INTEGER,
+                status TEXT NOT NULL DEFAULT 'new',
+                status_updated_at TEXT,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (submitted_by_user_id) REFERENCES users (id)
+            );
+
+            CREATE TABLE IF NOT EXISTS auth_consent_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                event_type TEXT NOT NULL,
+                consent_version TEXT,
+                consent_at TEXT NOT NULL,
+                source_ip TEXT,
+                user_agent TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
             );
 
             CREATE TABLE IF NOT EXISTS user_password_reset_tokens (
@@ -478,6 +515,11 @@ def create_app() -> Flask:
         }
         if "submitted_by_user_id" not in feedback_columns:
             db.execute("ALTER TABLE feedbacks ADD COLUMN submitted_by_user_id INTEGER")
+        if "status" not in feedback_columns:
+            db.execute("ALTER TABLE feedbacks ADD COLUMN status TEXT NOT NULL DEFAULT 'new'")
+        if "status_updated_at" not in feedback_columns:
+            db.execute("ALTER TABLE feedbacks ADD COLUMN status_updated_at TEXT")
+            db.execute("UPDATE feedbacks SET status_updated_at = created_at WHERE status_updated_at IS NULL")
 
         reset_token_columns = {
             row["name"]
@@ -756,6 +798,7 @@ def create_app() -> Flask:
                     "UPDATE users SET consent_auth_at = ?, consent_auth_version = ? WHERE id = ?",
                     (now, consent_version, user["id"]),
                 )
+                log_auth_consent_event(user["id"], "auth_login")
                 db.commit()
                 session.clear()
                 session["app_user_id"] = user["id"]
@@ -1009,6 +1052,8 @@ def create_app() -> Flask:
                 f.sender_name,
                 f.sender_email,
                 f.page_url,
+                f.status,
+                f.status_updated_at,
                 f.created_at,
                 u.email AS submitted_by_email
             FROM feedbacks f
@@ -1020,7 +1065,82 @@ def create_app() -> Flask:
             "admin_feedbacks.html",
             feedbacks=feedbacks,
             feedback_component_labels=FEEDBACK_COMPONENT_LABELS,
+            feedback_status_labels=FEEDBACK_STATUS_LABELS,
         )
+
+    @app.get("/admin/feedbacks/<int:feedback_id>")
+    def admin_feedback_detail(feedback_id: int):
+        current_user = get_current_user()
+        if current_user is None:
+            return redirect(url_for("auth_login", next=request.path))
+
+        if not bool(current_user["is_admin"]):
+            flash("Accès refusé: droits administrateur requis.", "error")
+            return redirect(url_for("home"))
+
+        db = get_db()
+        feedback = db.execute(
+            """
+            SELECT
+                f.id,
+                f.component,
+                f.message,
+                f.sender_name,
+                f.sender_email,
+                f.page_url,
+                f.status,
+                f.status_updated_at,
+                f.created_at,
+                u.email AS submitted_by_email
+            FROM feedbacks f
+            LEFT JOIN users u ON u.id = f.submitted_by_user_id
+            WHERE f.id = ?
+            LIMIT 1
+            """,
+            (feedback_id,),
+        ).fetchone()
+        if feedback is None:
+            flash("Feedback introuvable.", "error")
+            return redirect(url_for("admin_feedbacks"))
+
+        return render_template(
+            "admin_feedback_detail.html",
+            feedback=feedback,
+            feedback_component_labels=FEEDBACK_COMPONENT_LABELS,
+            feedback_status_labels=FEEDBACK_STATUS_LABELS,
+            feedback_status_values=sorted(FEEDBACK_STATUSES),
+        )
+
+    @app.post("/admin/feedbacks/<int:feedback_id>/status")
+    def admin_feedback_update_status(feedback_id: int):
+        if not validate_csrf():
+            flash("Session invalide. Recharge la page puis réessaie.", "error")
+            return redirect(url_for("admin_feedback_detail", feedback_id=feedback_id))
+
+        current_user = get_current_user()
+        if current_user is None or not bool(current_user["is_admin"]):
+            flash("Accès refusé: droits administrateur requis.", "error")
+            return redirect(url_for("home"))
+
+        new_status = request.form.get("status", "").strip().lower()
+        if new_status not in FEEDBACK_STATUSES:
+            flash("Statut feedback invalide.", "error")
+            return redirect(url_for("admin_feedback_detail", feedback_id=feedback_id))
+
+        db = get_db()
+        exists = db.execute("SELECT 1 FROM feedbacks WHERE id = ?", (feedback_id,)).fetchone()
+        if exists is None:
+            flash("Feedback introuvable.", "error")
+            return redirect(url_for("admin_feedbacks"))
+
+        now = datetime.utcnow().isoformat(timespec="seconds")
+        db.execute(
+            "UPDATE feedbacks SET status = ?, status_updated_at = ? WHERE id = ?",
+            (new_status, now, feedback_id),
+        )
+        db.commit()
+        flash("Statut du feedback mis à jour.", "success")
+        return redirect(url_for("admin_feedback_detail", feedback_id=feedback_id))
 
     @app.post("/admin/users/create")
     def admin_create_user():

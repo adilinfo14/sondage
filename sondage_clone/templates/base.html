@@ -123,28 +123,32 @@
         <section class="card nav-card">
             {% set minimalist_poll_view = request.endpoint == 'view_poll' and not app_auth_logged_in %}
             <nav class="top-nav">
-                {% if not minimalist_poll_view %}
-                <a class="nav-btn" href="{{ url_for('home') }}">Accueil / Créer un sondage</a>
-                {% endif %}
-                {% if app_auth_enabled and app_auth_logged_in %}
-                <a class="nav-btn" href="{{ url_for('my_polls') }}">Mes sondages</a>
-                {% endif %}
-                {% if minimalist_poll_view and app_auth_enabled and not app_auth_logged_in %}
-                <a class="nav-btn" href="{{ url_for('auth_register', next=request.path) }}">Inscription</a>
-                {% else %}
-                <button type="button" id="openFeedbackBtn" class="feedback-nav-btn"
-                    aria-label="Ouvrir le formulaire de feedback">💬 Feedback</button>
-                {% endif %}
-                <div class="theme-picker">
-                    <label for="themeSelect">Thème</label>
-                    <select id="themeSelect" aria-label="Choisir un thème visuel">
-                        <option value="default" selected>Coquelicot (jour)</option>
-                        <option value="nature">Nature / oiseaux (jour)</option>
-                        <option value="galaxy-day">Univers galaxy (jour)</option>
-                        <option value="default-dark">Coquelicot (nuit)</option>
-                        <option value="nature-dark">Nature / oiseaux (nuit)</option>
-                        <option value="galaxy">Univers galaxy (nuit)</option>
-                    </select>
+                <button type="button" id="mobileNavToggle" class="mobile-nav-toggle" aria-expanded="false"
+                    aria-controls="topNavMenu" aria-label="Ouvrir le menu de navigation">☰ Menu</button>
+                <div id="topNavMenu" class="top-nav-menu" data-open="false">
+                    {% if not minimalist_poll_view %}
+                    <a class="nav-btn" href="{{ url_for('home') }}">Accueil / Créer un sondage</a>
+                    {% endif %}
+                    {% if app_auth_enabled and app_auth_logged_in %}
+                    <a class="nav-btn" href="{{ url_for('my_polls') }}">Mes sondages</a>
+                    {% endif %}
+                    {% if minimalist_poll_view and app_auth_enabled and not app_auth_logged_in %}
+                    <a class="nav-btn" href="{{ url_for('auth_register', next=request.path) }}">Inscription</a>
+                    {% else %}
+                    <button type="button" id="openFeedbackBtn" class="feedback-nav-btn"
+                        aria-label="Ouvrir le formulaire de feedback">💬 Feedback</button>
+                    {% endif %}
+                    <div class="theme-picker">
+                        <label for="themeSelect">Thème</label>
+                        <select id="themeSelect" aria-label="Choisir un thème visuel">
+                            <option value="default" selected>Coquelicot (jour)</option>
+                            <option value="nature">Nature / oiseaux (jour)</option>
+                            <option value="galaxy-day">Univers galaxy (jour)</option>
+                            <option value="default-dark">Coquelicot (nuit)</option>
+                            <option value="nature-dark">Nature / oiseaux (nuit)</option>
+                            <option value="galaxy">Univers galaxy (nuit)</option>
+                        </select>
+                    </div>
                 </div>
             </nav>
         </section>

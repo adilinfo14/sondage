@@ -2644,8 +2644,27 @@ td:first-child {
 .top-nav {
     display: flex;
     gap: 10px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.top-nav-menu {
+    display: flex;
+    gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    width: 100%;
+}
+
+.mobile-nav-toggle {
+    display: none;
+    border-radius: 12px;
+    padding: 8px 12px;
+    background: var(--surface-soft);
+    border: 1px solid var(--surface-soft-border);
+    color: var(--text);
+    font-weight: 800;
+    box-shadow: none;
 }
 
 .theme-picker {
@@ -2776,6 +2795,50 @@ td:first-child {
     width: min(700px, 100%);
 }
 
+.feedback-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.feedback-status-new {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #1d4ed8;
+}
+
+.feedback-status-in_progress {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #b45309;
+}
+
+.feedback-status-resolved {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #047857;
+}
+
+.feedback-status-closed {
+    background: rgba(107, 114, 128, 0.16);
+    border-color: rgba(107, 114, 128, 0.35);
+    color: #374151;
+}
+
+.feedback-message-card {
+    margin-top: 8px;
+    border: 1px solid var(--surface-soft-border);
+    background: var(--surface-soft);
+    border-radius: 12px;
+    padding: 12px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 700px) {
     .hero h1 {
         font-size: clamp(1.35rem, 7vw, 1.9rem);
@@ -2833,15 +2896,46 @@ td:first-child {
     }
 
     .top-nav {
-        flex-direction: column;
-        align-items: stretch;
+        display: block;
     }
 
-    .top-nav .nav-btn,
-    .top-nav .feedback-nav-btn {
+    .mobile-nav-toggle {
+        display: inline-flex;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .top-nav-menu {
+        display: none;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--surface-soft-border);
+    }
+
+    .top-nav-menu[data-open="true"] {
+        display: grid;
+        gap: 8px;
+    }
+
+    .top-nav-menu .nav-btn,
+    .top-nav-menu .feedback-nav-btn {
         width: 100%;
         justify-content: center;
         text-align: center;
+    }
+
+    .top-nav-menu .theme-picker {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        gap: 6px;
+    }
+
+    .top-nav-menu .theme-picker select {
+        width: 100%;
+        min-width: 0;
     }
 
     .form-actions {

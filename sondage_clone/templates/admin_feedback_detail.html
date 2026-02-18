@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">🛡️ Administration</p>
+    <h1>Détail du feedback #{{ feedback.id }}</h1>
+    <p class="sub">Consulte le message complet et mets à jour son état de traitement.</p>
+</section>
+
+<section class="card">
+    <p class="meta">Date : {{ feedback.created_at | datetime_fr }}</p>
+    <p class="meta">Composant : {{ feedback_component_labels.get(feedback.component, feedback.component) }}</p>
+    <p class="meta">Statut actuel :
+        <span class="feedback-status feedback-status-{{ feedback.status }}">
+            {{ feedback_status_labels.get(feedback.status, feedback.status) }}
+        </span>
+    </p>
+    <p class="meta">Mis à jour le : {{ feedback.status_updated_at | datetime_fr }}</p>
+    <p class="meta">Nom : {{ feedback.sender_name or '-' }}</p>
+    <p class="meta">Email : {{ feedback.sender_email or '-' }}</p>
+    <p class="meta">Page : {{ feedback.page_url or '-' }}</p>
+    <p class="meta">Compte lié : {{ feedback.submitted_by_email or '-' }}</p>
+
+    <h2>Message</h2>
+    <article class="feedback-message-card">
+        {{ feedback.message }}
+    </article>
+
+    <h2>Mettre à jour l'état</h2>
+    <form action="{{ url_for('admin_feedback_update_status', feedback_id=feedback.id) }}" method="post" class="inline-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <select name="status" required>
+            {% for status_value in feedback_status_values %}
+            <option value="{{ status_value }}" {% if feedback.status == status_value %}selected{% endif %}>
+                {{ feedback_status_labels.get(status_value, status_value) }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Mettre à jour</button>
+    </form>
+
+    <p class="sub" style="margin-top: 14px;"><a href="{{ url_for('admin_feedbacks') }}">← Retour à la liste</a></p>
+</section>
+{% endblock %}
