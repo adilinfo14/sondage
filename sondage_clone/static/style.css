@@ -1,20 +1,26 @@
 /* Boutons actions sondage uniformes */
 .btn-poll-action {
-    min-width: 80px;
-    max-width: 100px;
-    flex: 1 1 80px;
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    padding: 4px 0;
+    padding: 10px 0;
     border-radius: 7px;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 1rem;
     text-decoration: none;
     border: none;
     cursor: pointer;
     transition: background 0.18s, color 0.18s;
+}
+
+.poll-card-action-form button.btn-poll-action {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
 }
 
 .btn-poll-action span {
