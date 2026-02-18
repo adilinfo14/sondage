@@ -3,6 +3,40 @@ const shareInput = document.getElementById("shareUrl");
 const themeSelect = document.getElementById("themeSelect");
 const mobileNavToggle = document.getElementById("mobileNavToggle");
 const topNavMenu = document.getElementById("topNavMenu");
+const adminNavGroups = Array.from(document.querySelectorAll(".admin-nav-group"));
+
+if (adminNavGroups.length > 0) {
+    const closeAdminSubmenus = () => {
+        adminNavGroups.forEach((group) => group.removeAttribute("open"));
+    };
+
+    document.addEventListener("click", (event) => {
+        const clickTarget = event.target;
+        if (!(clickTarget instanceof Node)) {
+            return;
+        }
+
+        const isInsideAdminMenu = adminNavGroups.some((group) => group.contains(clickTarget));
+        if (!isInsideAdminMenu) {
+            closeAdminSubmenus();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeAdminSubmenus();
+        }
+    });
+
+    adminNavGroups.forEach((group) => {
+        const submenuLinks = group.querySelectorAll(".admin-submenu-link");
+        submenuLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+                closeAdminSubmenus();
+            });
+        });
+    });
+}
 
 if (mobileNavToggle && topNavMenu) {
     const closeMobileMenu = () => {
