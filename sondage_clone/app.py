@@ -125,6 +125,9 @@ def create_app() -> Flask:
     smtp_from_email = os.environ.get("SMTP_FROM_EMAIL", smtp_user).strip()
     smtp_from_name = os.environ.get("SMTP_FROM_NAME", "Sondage-noschoixpourvous").strip() or "Sondage-noschoixpourvous"
     feedback_to_email = os.environ.get("FEEDBACK_TO_EMAIL", smtp_from_email).strip().lower()
+    legal_publisher_name = os.environ.get("LEGAL_PUBLISHER_NAME", "TKONSULTING").strip() or "TKONSULTING"
+    legal_siren_siret = os.environ.get("LEGAL_SIREN_SIRET", "948370317").strip() or "948370317"
+    legal_contact_email = os.environ.get("LEGAL_CONTACT_EMAIL", smtp_from_email).strip() or smtp_from_email or "-"
     password_reset_ttl_hours_raw = os.environ.get("SONDAGE_PASSWORD_RESET_TTL_HOURS", "48").strip()
     try:
         password_reset_ttl_hours = int(password_reset_ttl_hours_raw)
@@ -629,6 +632,9 @@ def create_app() -> Flask:
             "poll_type_labels": POLL_TYPE_LABELS,
             "response_mode_labels": RESPONSE_MODE_LABELS,
             "app_ui_theme": ui_theme,
+            "legal_publisher_name": legal_publisher_name,
+            "legal_siren_siret": legal_siren_siret,
+            "legal_contact_email": legal_contact_email,
         }
 
     @app.before_request
