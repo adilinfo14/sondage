@@ -1360,6 +1360,103 @@ def create_app() -> Flask:
         archived_polls = [poll for poll in polls if poll["archived_at"]]
         return render_template("my_polls.html", active_polls=active_polls, archived_polls=archived_polls)
 
+        @app.get("/poll/<token>/edit")
+        def edit_poll_page(token: str):
+            poll = get_poll_by_token(token)
+            if poll is None:
+                flash("Sondage introuvable.", "error")
+                return redirect(url_for("home"))
+
+            current_user = get_current_user()
+            if current_user is None:
+                return redirect(url_for("auth_login", next=request.path))
+
+            # Vérifie que l'utilisateur est le créateur
+            if poll["created_by_user_id"] is None or int(poll["created_by_user_id"]) != int(current_user["id"]):
+                flash("Accès refusé: seul le créateur peut modifier ce sondage.", "error")
+                return redirect(url_for("my_polls"))
+
+            # Vérifie s'il y a des votes
+            db = get_db()
+            votes_exist = db.execute("SELECT 1 FROM votes WHERE poll_id = ? LIMIT 1", (poll["id"],)).fetchone() is not None
+            if votes_exist:
+                flash("Impossible de modifier: des votes ont déjà été enregistrés.", "error")
+                return redirect(url_for("my_polls"))
+
+            slots = get_poll_slots(poll["id"])
+            return render_template(
+                "edit_poll.html",
+                poll=poll,
+                slots=slots,
+            )
+
+        @app.post("/poll/<token>/edit")
+        def edit_poll(token: str):
+            if not validate_csrf():
+                flash("Session invalide. Recharge la page puis réessaie.", "error")
+                return redirect(url_for("edit_poll_page", token=token))
+
+            poll = get_poll_by_token(token)
+            if poll is None:
+                flash("Sondage introuvable.", "error")
+                return redirect(url_for("home"))
+
+            current_user = get_current_user()
+            if current_user is None:
+                return redirect(url_for("auth_login", next=request.path))
+
+            if poll["created_by_user_id"] is None or int(poll["created_by_user_id"]) != int(current_user["id"]):
+                flash("Accès refusé: seul le créateur peut modifier ce sondage.", "error")
+                return redirect(url_for("my_polls"))
+
+            db = get_db()
+            votes_exist = db.execute("SELECT 1 FROM votes WHERE poll_id = ? LIMIT 1", (poll["id"],)).fetchone() is not None
+            if votes_exist:
+                flash("Impossible de modifier: des votes ont déjà été enregistrés.", "error")
+                return redirect(url_for("my_polls"))
+
+            # Récupère les champs du formulaire
+            title = request.form.get("title", "").strip()[:120]
+            description = request.form.get("description", "").strip()[:600]
+            poll_type = request.form.get("poll_type", "meeting").strip().lower()
+            response_mode = normalize_response_mode(request.form.get("response_mode", "single"))
+            deadline_input = request.form.get("deadline_at", "").strip()
+            deadline_at = parse_deadline(deadline_input)
+            raw_slots = request.form.get("slots", "")
+            slots = [line.strip()[:120] for line in raw_slots.splitlines() if line.strip()]
+
+            if poll_type not in ALLOWED_POLL_TYPES:
+                poll_type = "meeting"
+            if deadline_input and deadline_at is None:
+                flash("Date limite invalide.", "error")
+                return redirect(url_for("edit_poll_page", token=token))
+            if not title:
+                flash("Le titre du sondage est obligatoire.", "error")
+                return redirect(url_for("edit_poll_page", token=token))
+            if not slots or len(slots) < 2:
+                flash("Ajoute au moins 2 créneaux pour modifier le sondage.", "error")
+                return redirect(url_for("edit_poll_page", token=token))
+            if len(slots) > 30:
+                flash("Maximum 30 créneaux/choix par sondage.", "error")
+                return redirect(url_for("edit_poll_page", token=token))
+
+            # Met à jour le sondage
+            db.execute(
+                "UPDATE polls SET title = ?, description = ?, poll_type = ?, response_mode = ?, deadline_at = ? WHERE id = ?",
+                (title, description, poll_type, response_mode, deadline_at, poll["id"]),
+            )
+            # Supprime les anciens créneaux
+            db.execute("DELETE FROM slots WHERE poll_id = ?", (poll["id"],))
+            # Ajoute les nouveaux créneaux
+            for position, label in enumerate(slots, start=1):
+                db.execute(
+                    "INSERT INTO slots (poll_id, label, position) VALUES (?, ?, ?)",
+                    (poll["id"], label, position),
+                )
+            db.commit()
+            flash("Sondage modifié avec succès.", "success")
+            return redirect(url_for("view_poll", token=token))
+
     @app.post("/poll/<token>/archive")
     def archive_poll(token: str):
         if not validate_csrf():

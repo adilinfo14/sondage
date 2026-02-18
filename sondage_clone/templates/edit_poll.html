@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <h1>Modifier le sondage</h1>
+    <p class="sub">Attention : la modification n'est possible que tant qu'aucun vote n'a été enregistré.<br>
+    Dès qu'un participant a voté, le sondage ne peut plus être modifié.</p>
+</section>
+
+<section class="card">
+    <form action="{{ url_for('edit_poll', token=poll.token) }}" method="post" class="poll-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label class="full-width">
+            Titre du sondage
+            <input type="text" name="title" value="{{ poll.title }}" required maxlength="120">
+        </label>
+
+        <label>
+            Type de sondage
+            <select name="poll_type">
+                {% for key, label in poll_type_labels.items() %}
+                <option value="{{ key }}" {% if poll.poll_type == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Mode de vote
+            <select name="response_mode">
+                {% for key, label in response_mode_labels.items() %}
+                <option value="{{ key }}" {% if poll.response_mode == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="full-width">
+            Description (optionnelle)
+            <textarea name="description" rows="3" maxlength="600">{{ poll.description }}</textarea>
+        </label>
+
+        <label>
+            Date limite de vote (optionnelle)
+            <input type="datetime-local" name="deadline_at" value="{{ poll.deadline_at }}">
+        </label>
+
+        <label class="full-width">
+            Créneaux / choix (un par ligne)
+            <textarea name="slots" rows="6" required maxlength="1200">{% for slot in slots %}{{ slot.label }}
+{% endfor %}</textarea>
+            <span class="meta">Ajoute au moins 2 créneaux, maximum 30.</span>
+        </label>
+
+        <button type="submit">Enregistrer les modifications</button>
+    </form>
+</section>
+{% endblock %}
