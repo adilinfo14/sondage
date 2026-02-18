@@ -24,11 +24,7 @@
                     <input type="hidden" name="action" value="archive">
                     <button type="submit">Archiver</button>
                 </form>
-                {% if poll.votes_count == 0 %}
-                <a href="{{ url_for('edit_poll_page', token=poll.token) }}" class="poll-card-action-btn">Modifier</a>
-                {% else %}
-                <span class="meta danger">Modification impossible : des votes existent</span>
-                {% endif %}
+                <!-- Bouton Modifier retiré car la fonctionnalité n'est pas disponible dans cette version -->
             </div>
         </article>
         {% endfor %}
