@@ -56,13 +56,13 @@
                     <td>{% if user.is_admin %}Administrateur{% else %}Utilisateur{% endif %}</td>
                     <td>
                         {% if user.consent_auth_at %}
-                        {{ user.consent_auth_at }}{% if user.consent_auth_version %} ({{ user.consent_auth_version }}){%
+                        {{ user.consent_auth_at | datetime_fr }}{% if user.consent_auth_version %} ({{ user.consent_auth_version }}){%
                         endif %}
                         {% else %}
                         Non enregistré
                         {% endif %}
                     </td>
-                    <td>{{ user.created_at }}</td>
+                    <td>{{ user.created_at | datetime_fr }}</td>
                     <td>
                         <div class="admin-actions">
                             <form action="{{ url_for('admin_toggle_user_active', user_id=user.id) }}" method="post">
@@ -73,9 +73,15 @@
                             </form>
                             <form action="{{ url_for('admin_toggle_user_admin', user_id=user.id) }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="admin-action-btn">{% if user.is_admin %}Retirer admin{%
-                                    else %}Donner admin{% endif
-                                    %}</button>
+                                {% set is_last_active_admin = user.is_admin and user.is_active and active_admins_count <= 1 %}
+                                <button type="submit" class="admin-action-btn" {% if is_last_active_admin %}disabled
+                                    title="Impossible: il doit rester au moins un administrateur actif."{% endif %}>
+                                    {% if user.is_admin %}Retirer admin{% else %}Donner admin{% endif %}
+                                </button>
+                            </form>
+                            <form action="{{ url_for('admin_send_password_reset', user_id=user.id) }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="admin-action-btn">Envoyer mail mot de passe</button>
                             </form>
                         </div>
                     </td>

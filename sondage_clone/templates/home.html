@@ -7,7 +7,21 @@
     <p class="sub">Prise de rendez-vous, vote d'équipe, choix d'idées: tout en un, avec accès organisateur sécurisé.</p>
 </section>
 
-<section class="card">
+<section class="card create-form-card">
+    <span class="form-canary fc-left" aria-hidden="true">
+        <span class="crest"></span>
+        <span class="eye e1"></span>
+        <span class="eye e2"></span>
+        <span class="wing"></span>
+        <span class="beak"></span>
+    </span>
+    <span class="form-canary fc-right" aria-hidden="true">
+        <span class="crest"></span>
+        <span class="eye e1"></span>
+        <span class="eye e2"></span>
+        <span class="wing"></span>
+        <span class="beak"></span>
+    </span>
     <form id="createPollForm" action="{{ url_for('create_poll') }}" method="post" class="poll-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -28,8 +42,8 @@
         <label>
             Mode de vote
             <select name="response_mode">
-                <option value="single" selected>Choix unique (1 option parmi n)</option>
-                <option value="multiple">Choix multiple (plusieurs options)</option>
+                <option value="single" selected>Choix unique</option>
+                <option value="multiple">Choix multiple</option>
             </select>
         </label>
 
@@ -38,7 +52,7 @@
             <textarea name="description" rows="3" placeholder="Contexte, durée, lien visio..."></textarea>
         </label>
 
-        <label>
+        <label class="full-width">
             Nom et prénom de l'organisateur
             <input type="text" name="creator_name" placeholder="Ex: Ilhan Dupont" value="{{
                 (app_auth_user_email.split('@')[0] | replace('.', ' ') | replace('_', ' ') | title)
@@ -53,8 +67,9 @@
         </label>
 
         <label>
-            Code organisateur (minimum 8 caractères)
-            <input type="password" name="organizer_code" minlength="8" placeholder="Code secret" required>
+            Code organisateur
+            <input type="password" name="organizer_code" minlength="8" placeholder="Minimum 8 caractères" required>
+            <span class="meta">Protège l’accès organisateur.</span>
         </label>
 
         <label class="full-width">
@@ -83,7 +98,7 @@
         </label>
 
         <div class="form-actions">
-            <button type="button" id="previewPollBtn">⚡ Prévisualisation live</button>
+            <button type="button" id="previewPollBtn">⚡ Prévisualisation</button>
             <button type="submit" id="submitPollBtn">Créer le sondage</button>
         </div>
     </form>

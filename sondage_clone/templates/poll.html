@@ -10,7 +10,7 @@
     <p class="meta meta-inline">
         {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }} · {{ poll_response_mode_label }}
         {% if poll.deadline_at %}
-        · Date limite: {{ poll.deadline_at.replace('T', ' ') }} {% if closed %}(clôturé){% endif %}
+        · Date limite: {{ poll.deadline_at | datetime_fr }} {% if closed %}(clôturé){% endif %}
         {% endif %}
     </p>
     {% if admin_mode %}
@@ -28,7 +28,11 @@
 <section class="card">
     <h2>{% if closed %}Votes fermés{% else %}Voter{% endif %}</h2>
     {% if closed %}
+    {% if is_archived %}
+    <p>Ce sondage est archivé, les votes sont fermés.</p>
+    {% else %}
     <p>La date limite est dépassée, le sondage est clôturé.</p>
+    {% endif %}
     {% elif organizer_has_voted and not show_vote_form %}
     <p>Vote organisateur déjà enregistré.</p>
     <p><a href="{{ url_for('view_poll', token=poll.token, edit=1) }}">Modifier mon vote</a></p>

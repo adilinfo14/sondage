@@ -4,7 +4,25 @@ const themeSelect = document.getElementById("themeSelect");
 
 if (themeSelect) {
     const THEME_STORAGE_KEY = "sondage_theme";
-    const ALLOWED_THEMES = new Set(["default", "nature", "galaxy"]);
+    const THEME_COOKIE_KEY = "sondage_theme";
+    const ALLOWED_THEMES = new Set(["default", "default-dark", "nature", "nature-dark", "galaxy-day", "galaxy"]);
+
+    const readThemeCookie = () => {
+        const cookiePrefix = `${THEME_COOKIE_KEY}=`;
+        const cookieValue = document.cookie
+            .split(";")
+            .map((entry) => entry.trim())
+            .find((entry) => entry.startsWith(cookiePrefix));
+        if (!cookieValue) {
+            return "";
+        }
+        return decodeURIComponent(cookieValue.slice(cookiePrefix.length));
+    };
+
+    const persistTheme = (theme) => {
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+        document.cookie = `${THEME_COOKIE_KEY}=${encodeURIComponent(theme)}; Max-Age=31536000; Path=/; SameSite=Lax`;
+    };
 
     const applyTheme = (theme) => {
         const html = document.documentElement;
@@ -15,15 +33,17 @@ if (themeSelect) {
         html.setAttribute("data-theme", theme);
     };
 
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "default";
+    const htmlTheme = document.documentElement.getAttribute("data-theme") || "default";
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || readThemeCookie() || htmlTheme;
     const initialTheme = ALLOWED_THEMES.has(savedTheme) ? savedTheme : "default";
     themeSelect.value = initialTheme;
     applyTheme(initialTheme);
+    persistTheme(initialTheme);
 
     themeSelect.addEventListener("change", () => {
         const selectedTheme = themeSelect.value;
         const safeTheme = ALLOWED_THEMES.has(selectedTheme) ? selectedTheme : "default";
-        localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
+        persistTheme(safeTheme);
         applyTheme(safeTheme);
     });
 }
@@ -367,4 +387,73 @@ if (openFeedbackBtn && feedbackModal) {
 
     feedbackMessageInput?.addEventListener("input", refreshFeedbackCounter);
     refreshFeedbackCounter();
+}
+
+const deletePollModal = document.getElementById("deletePollModal");
+const openDeletePollButtons = document.querySelectorAll(".open-delete-poll-modal");
+const closeDeletePollModalBtn = document.getElementById("closeDeletePollModalBtn");
+const cancelDeletePollBtn = document.getElementById("cancelDeletePollBtn");
+const confirmDeletePollBtn = document.getElementById("confirmDeletePollBtn");
+const deletePollModalText = document.getElementById("deletePollModalText");
+
+if (deletePollModal && openDeletePollButtons.length > 0) {
+    let formIdToSubmit = "";
+
+    const openDeletePollModal = (formId, pollTitle) => {
+        formIdToSubmit = formId;
+        if (deletePollModalText) {
+            deletePollModalText.textContent = `Êtes-vous sûr de vouloir supprimer le sondage « ${pollTitle} » ? Cette action est irréversible.`;
+        }
+        deletePollModal.hidden = false;
+        requestAnimationFrame(() => {
+            deletePollModal.setAttribute("data-open", "true");
+            document.body.classList.add("modal-open");
+        });
+    };
+
+    const closeDeletePollModal = () => {
+        deletePollModal.setAttribute("data-open", "false");
+        window.setTimeout(() => {
+            deletePollModal.hidden = true;
+            document.body.classList.remove("modal-open");
+            formIdToSubmit = "";
+        }, 160);
+    };
+
+    openDeletePollButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const targetFormId = btn.getAttribute("data-delete-form-id") || "";
+            const pollTitle = btn.getAttribute("data-poll-title") || "ce sondage";
+            if (!targetFormId) {
+                return;
+            }
+            openDeletePollModal(targetFormId, pollTitle);
+        });
+    });
+
+    closeDeletePollModalBtn?.addEventListener("click", closeDeletePollModal);
+    cancelDeletePollBtn?.addEventListener("click", closeDeletePollModal);
+
+    deletePollModal.addEventListener("click", (event) => {
+        if (event.target === deletePollModal) {
+            closeDeletePollModal();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && deletePollModal.getAttribute("data-open") === "true") {
+            closeDeletePollModal();
+        }
+    });
+
+    confirmDeletePollBtn?.addEventListener("click", () => {
+        if (!formIdToSubmit) {
+            return;
+        }
+        const form = document.getElementById(formIdToSubmit);
+        if (!form) {
+            return;
+        }
+        form.submit();
+    });
 }

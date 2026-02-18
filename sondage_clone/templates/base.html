@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" {% if app_ui_theme !='default' %} data-theme="{{ app_ui_theme }}" {% endif %}>
 
 <head>
     <meta charset="UTF-8">
@@ -29,6 +29,11 @@
             <span class="wing right"></span>
             <span class="face"></span>
         </span>
+        <span class="beehive hive1"></span>
+        <span class="hive-bee hb1"></span>
+        <span class="hive-bee hb2"></span>
+        <span class="hive-bee hb3"></span>
+        <span class="hive-bee hb4"></span>
     </div>
 
     <div class="bg-nature" aria-hidden="true">
@@ -64,6 +69,13 @@
         <span class="nature-bird swallow nb3"></span>
         <span class="nature-bird gull reverse nb4"></span>
         <span class="nature-bird swallow reverse nb5"></span>
+        <span class="canary cny1">
+            <span class="eye e1"></span>
+            <span class="eye e2"></span>
+            <span class="wing left"></span>
+            <span class="wing right"></span>
+            <span class="beak"></span>
+        </span>
     </div>
 
     <div class="bg-galaxy" aria-hidden="true">
@@ -83,12 +95,18 @@
         <span class="planet p-mercury"></span>
         <span class="planet p-venus"></span>
         <span class="planet p-earth"></span>
+        <span class="moon m1"></span>
         <span class="planet p-mars"></span>
         <span class="planet p-jupiter"></span>
+        <span class="saturn-ring sr-back"></span>
         <span class="planet p-saturn"></span>
+        <span class="saturn-ring sr-front"></span>
         <span class="planet p-neptune"></span>
         <span class="nebula n1"></span>
         <span class="nebula n2"></span>
+        <span class="stardust sd1"></span>
+        <span class="stardust sd2"></span>
+        <span class="stardust sd3"></span>
         <span class="galaxy-swirl g1"></span>
         <span class="galaxy-swirl g2"></span>
         <span class="galaxy-swirl g3"></span>
@@ -120,9 +138,12 @@
                 <div class="theme-picker">
                     <label for="themeSelect">Thème</label>
                     <select id="themeSelect" aria-label="Choisir un thème visuel">
-                        <option value="default" selected>Coquelicot</option>
-                        <option value="nature">Nature / oiseaux</option>
-                        <option value="galaxy">Univers galaxy</option>
+                        <option value="default" selected>Coquelicot (jour)</option>
+                        <option value="nature">Nature / oiseaux (jour)</option>
+                        <option value="galaxy-day">Univers galaxy (jour)</option>
+                        <option value="default-dark">Coquelicot (nuit)</option>
+                        <option value="nature-dark">Nature / oiseaux (nuit)</option>
+                        <option value="galaxy">Univers galaxy (nuit)</option>
                     </select>
                 </div>
             </nav>
@@ -136,6 +157,7 @@
                     Connecté : {{ app_auth_user_email }}
                     {% if app_auth_user_is_admin %}
                     · <a href="{{ url_for('admin_users') }}">Administration comptes</a>
+                    · <a href="{{ url_for('admin_feedbacks') }}">Consultation feedbacks</a>
                     {% endif %}
                 </span>
                 <button type="submit" class="logout-btn">Déconnexion</button>
@@ -157,6 +179,8 @@
 
         <section style="text-align:center; padding-bottom:8px;">
             <a href="{{ url_for('privacy_policy') }}">Politique de confidentialité (RGPD)</a>
+            <span aria-hidden="true"> · </span>
+            <a href="{{ url_for('legal_notice') }}">Mentions légales</a>
         </section>
     </main>
 

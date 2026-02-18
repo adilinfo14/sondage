@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="card hero">
+    <p class="eyebrow">🛡️ Administration</p>
+    <h1>Consultation des feedbacks</h1>
+    <p class="sub">Liste des retours utilisateurs pour suivi et amélioration continue.</p>
+</section>
+
+<section class="card">
+    <h2>Feedbacks reçus</h2>
+    {% if feedbacks %}
+    <div class="table-wrap users-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Composant</th>
+                    <th>Message</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Page</th>
+                    <th>Compte lié</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for feedback in feedbacks %}
+                <tr>
+                    <td>{{ feedback.created_at | datetime_fr }}</td>
+                    <td>{{ feedback_component_labels.get(feedback.component, feedback.component) }}</td>
+                    <td>{{ feedback.message }}</td>
+                    <td>{{ feedback.sender_name or '-' }}</td>
+                    <td>{{ feedback.sender_email or '-' }}</td>
+                    <td>{{ feedback.page_url or '-' }}</td>
+                    <td>{{ feedback.submitted_by_email or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Aucun feedback enregistré pour le moment.</p>
+    {% endif %}
+</section>
+{% endblock %}

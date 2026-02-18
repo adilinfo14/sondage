@@ -15,13 +15,16 @@
             <p class="meta">Type: {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
             <p class="meta">Mode: {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
             <p class="meta">Participants votants: {{ poll.votes_count }}</p>
-            <p class="meta">Créé le: {{ poll.created_at }}</p>
+            <p class="meta">Créé le: {{ poll.created_at | datetime_fr }}</p>
             <p><a href="{{ url_for('view_poll', token=poll.token) }}">Ouvrir le sondage</a></p>
-            <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post" style="margin-top:8px;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="action" value="archive">
-                <button type="submit">Archiver</button>
-            </form>
+            <div class="poll-card-actions">
+                <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post"
+                    class="poll-card-action-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="archive">
+                    <button type="submit">Archiver</button>
+                </form>
+            </div>
         </article>
         {% endfor %}
     </div>
@@ -40,13 +43,23 @@
             <p class="meta">Type: {{ poll_type_labels.get(poll.poll_type, poll.poll_type) }}</p>
             <p class="meta">Mode: {{ response_mode_labels.get(poll.response_mode, poll.response_mode) }}</p>
             <p class="meta">Participants votants: {{ poll.votes_count }}</p>
-            <p class="meta">Archivé le: {{ poll.archived_at }}</p>
+            <p class="meta">Archivé le: {{ poll.archived_at | datetime_fr }}</p>
             <p><a href="{{ url_for('view_poll', token=poll.token) }}">Voir le sondage</a></p>
-            <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post" style="margin-top:8px;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="action" value="unarchive">
-                <button type="submit">Désarchiver</button>
-            </form>
+            <div class="poll-card-actions">
+                <form action="{{ url_for('archive_poll', token=poll.token) }}" method="post"
+                    class="poll-card-action-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="unarchive">
+                    <button type="submit">Désarchiver</button>
+                </form>
+                <form id="delete-poll-{{ poll.id }}" action="{{ url_for('delete_poll', token=poll.token) }}"
+                    method="post" class="poll-card-action-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="button" class="danger-btn open-delete-poll-modal"
+                        data-delete-form-id="delete-poll-{{ poll.id }}"
+                        data-poll-title="{{ poll.title }}">Supprimer</button>
+                </form>
+            </div>
         </article>
         {% endfor %}
     </div>
@@ -54,4 +67,18 @@
     <p>Aucun sondage archivé.</p>
     {% endif %}
 </section>
+
+<div id="deletePollModal" class="modal-backdrop" hidden>
+    <section class="card modal-card" role="dialog" aria-modal="true" aria-labelledby="deletePollModalTitle">
+        <div class="modal-header">
+            <h2 id="deletePollModalTitle">Confirmation de suppression</h2>
+            <button type="button" id="closeDeletePollModalBtn" class="modal-close-btn" aria-label="Fermer">✕</button>
+        </div>
+        <p id="deletePollModalText" class="sub"></p>
+        <div class="form-actions">
+            <button type="button" id="confirmDeletePollBtn" class="danger-btn">Oui, supprimer définitivement</button>
+            <button type="button" id="cancelDeletePollBtn">Annuler</button>
+        </div>
+    </section>
+</div>
 {% endblock %}

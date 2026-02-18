@@ -5,6 +5,7 @@ import smtplib
 import os
 import secrets
 import sqlite3
+import hashlib
 from datetime import datetime, timedelta
 from email.message import EmailMessage
 from pathlib import Path
@@ -42,6 +43,7 @@ DB_PATH = Path(os.environ.get("SONDAGE_DB_PATH", str(BASE_DIR / "sondage.db")))
 ALLOWED_CHOICES = {"yes", "no"}
 ALLOWED_POLL_TYPES = {"meeting", "opinion", "event", "training", "shift", "meal", "trip"}
 ALLOWED_RESPONSE_MODES = {"single", "multiple"}
+ALLOWED_UI_THEMES = {"default", "default-dark", "nature", "nature-dark", "galaxy-day", "galaxy"}
 POLL_TYPE_LABELS = {
     "meeting": "📅 Réunion / RDV",
     "opinion": "💡 Prise d’avis / décision",
@@ -52,9 +54,9 @@ POLL_TYPE_LABELS = {
     "trip": "✈️ Voyage / déplacement",
 }
 RESPONSE_MODE_LABELS = {
-    "single": "Choix unique (1 option parmi n)",
-    "multiple": "Choix multiple (plusieurs options)",
-    "availability": "Choix multiple (plusieurs options)",
+    "single": "Choix unique",
+    "multiple": "Choix multiple",
+    "availability": "Choix multiple",
 }
 FEEDBACK_COMPONENTS = {
     "navigation",
@@ -64,6 +66,15 @@ FEEDBACK_COMPONENTS = {
     "account",
     "performance",
     "other",
+}
+FEEDBACK_COMPONENT_LABELS = {
+    "navigation": "Navigation",
+    "creation": "Création de sondage",
+    "vote": "Vote",
+    "results": "Résultats",
+    "account": "Compte / connexion",
+    "performance": "Performance",
+    "other": "Autre",
 }
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 DEFAULT_CONSENT_VERSION = "v1.0-2026-02-15"
@@ -107,6 +118,12 @@ def create_app() -> Flask:
     smtp_from_email = os.environ.get("SMTP_FROM_EMAIL", smtp_user).strip()
     smtp_from_name = os.environ.get("SMTP_FROM_NAME", "Sondage-noschoixpourvous").strip() or "Sondage-noschoixpourvous"
     feedback_to_email = os.environ.get("FEEDBACK_TO_EMAIL", smtp_from_email).strip().lower()
+    password_reset_ttl_hours_raw = os.environ.get("SONDAGE_PASSWORD_RESET_TTL_HOURS", "48").strip()
+    try:
+        password_reset_ttl_hours = int(password_reset_ttl_hours_raw)
+    except ValueError:
+        password_reset_ttl_hours = 48
+    password_reset_ttl_hours = max(1, min(168, password_reset_ttl_hours))
 
     def parse_email_list(raw: str) -> list[str]:
         parts = re.split(r"[\n,;]+", raw)
@@ -246,6 +263,65 @@ def create_app() -> Flask:
             app.logger.exception("Erreur envoi feedback SMTP: %s", exc)
             return False
 
+    def hash_password_reset_token(raw_token: str) -> str:
+        return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+    def send_password_reset_email(recipient_email: str, reset_url: str, expires_at: str) -> bool:
+        if not smtp_configured():
+            return False
+
+        sender_display = f"{smtp_from_name} <{smtp_from_email}>"
+        message = EmailMessage()
+        message["Subject"] = "Définition / changement de mot de passe"
+        message["From"] = sender_display
+        message["To"] = recipient_email
+        message.set_content(
+            f"Bonjour,\n\n"
+            f"Un administrateur a demandé la définition (ou le changement) de ton mot de passe.\n\n"
+            f"Lien sécurisé : {reset_url}\n"
+            f"Expiration : {expires_at} (UTC)\n\n"
+            f"Si tu n'es pas à l'origine de cette demande, tu peux ignorer ce message.\n"
+        )
+
+        try:
+            smtp_client = smtplib.SMTP_SSL if smtp_use_ssl else smtplib.SMTP
+            with smtp_client(smtp_host, smtp_port, timeout=20) as server:
+                if smtp_use_tls and not smtp_use_ssl:
+                    server.starttls()
+                if smtp_user and smtp_password:
+                    server.login(smtp_user, smtp_password)
+                server.send_message(message)
+            return True
+        except Exception as exc:
+            app.logger.exception("Erreur envoi email reset mot de passe: %s", exc)
+            return False
+
+    def save_feedback(
+        component: str,
+        message_text: str,
+        sender_name: str,
+        sender_email: str,
+        page_url: str,
+        submitted_by_user_id: int | None,
+    ) -> None:
+        db = get_db()
+        db.execute(
+            """
+            INSERT INTO feedbacks (component, message, sender_name, sender_email, page_url, submitted_by_user_id, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                component,
+                message_text,
+                sender_name or None,
+                sender_email or None,
+                page_url or None,
+                submitted_by_user_id,
+                datetime.utcnow().isoformat(timespec="seconds"),
+            ),
+        )
+        db.commit()
+
     def get_db() -> sqlite3.Connection:
         if "db" not in g:
             connection = sqlite3.connect(DB_PATH)
@@ -316,6 +392,30 @@ def create_app() -> Flask:
                 consent_auth_version TEXT,
                 created_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS feedbacks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                component TEXT NOT NULL,
+                message TEXT NOT NULL,
+                sender_name TEXT,
+                sender_email TEXT,
+                page_url TEXT,
+                submitted_by_user_id INTEGER,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (submitted_by_user_id) REFERENCES users (id)
+            );
+
+            CREATE TABLE IF NOT EXISTS user_password_reset_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token_hash TEXT NOT NULL UNIQUE,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                used_at TEXT,
+                sent_by_admin_user_id INTEGER,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (sent_by_admin_user_id) REFERENCES users (id)
+            );
             """
         )
 
@@ -371,6 +471,20 @@ def create_app() -> Flask:
             db.execute("ALTER TABLE users ADD COLUMN consent_auth_at TEXT")
         if "consent_auth_version" not in user_columns:
             db.execute("ALTER TABLE users ADD COLUMN consent_auth_version TEXT")
+
+        feedback_columns = {
+            row["name"]
+            for row in db.execute("PRAGMA table_info(feedbacks)").fetchall()
+        }
+        if "submitted_by_user_id" not in feedback_columns:
+            db.execute("ALTER TABLE feedbacks ADD COLUMN submitted_by_user_id INTEGER")
+
+        reset_token_columns = {
+            row["name"]
+            for row in db.execute("PRAGMA table_info(user_password_reset_tokens)").fetchall()
+        }
+        if "sent_by_admin_user_id" not in reset_token_columns:
+            db.execute("ALTER TABLE user_password_reset_tokens ADD COLUMN sent_by_admin_user_id INTEGER")
 
         if bootstrap_admin_email and EMAIL_REGEX.match(bootstrap_admin_email):
             db.execute(
@@ -432,9 +546,36 @@ def create_app() -> Flask:
             return None
         return max(summary_rows, key=lambda row: (row["yes_count"], -row["no_count"]))
 
+    def get_current_ui_theme() -> str:
+        raw_theme = (request.cookies.get("sondage_theme") or "default").strip().lower()
+        if raw_theme in ALLOWED_UI_THEMES:
+            return raw_theme
+        return "default"
+
+    def format_datetime_fr(value: str | None) -> str:
+        raw_value = (value or "").strip()
+        if not raw_value:
+            return "-"
+        try:
+            parsed = datetime.fromisoformat(raw_value)
+            return parsed.strftime("%d-%m-%Y %H:%M:%S")
+        except ValueError:
+            if "T" in raw_value:
+                try:
+                    parsed = datetime.fromisoformat(raw_value.replace("Z", "+00:00"))
+                    return parsed.strftime("%d-%m-%Y %H:%M:%S")
+                except ValueError:
+                    return raw_value
+            return raw_value
+
+    @app.template_filter("datetime_fr")
+    def datetime_fr_filter(value: str | None) -> str:
+        return format_datetime_fr(value)
+
     @app.context_processor
     def inject_csrf() -> dict:
         current_user = get_current_user()
+        ui_theme = get_current_ui_theme()
         return {
             "csrf_token": _csrf_token,
             "app_auth_enabled": auth_enabled,
@@ -445,6 +586,7 @@ def create_app() -> Flask:
             "consent_version": consent_version,
             "poll_type_labels": POLL_TYPE_LABELS,
             "response_mode_labels": RESPONSE_MODE_LABELS,
+            "app_ui_theme": ui_theme,
         }
 
     @app.before_request
@@ -455,7 +597,10 @@ def create_app() -> Flask:
         public_endpoints = {
             "auth_login",
             "auth_register",
+            "auth_forgot_password",
+            "auth_set_password",
             "privacy_policy",
+            "legal_notice",
             "view_poll",
             "vote",
             "vote_status",
@@ -574,6 +719,10 @@ def create_app() -> Flask:
     def privacy_policy() -> str:
         return render_template("privacy.html")
 
+    @app.get("/legal")
+    def legal_notice() -> str:
+        return render_template("legal.html")
+
     @app.route("/auth/login", methods=["GET", "POST"])
     def auth_login():
         if not auth_enabled:
@@ -621,6 +770,63 @@ def create_app() -> Flask:
         if not next_url.startswith("/"):
             next_url = url_for("home")
         return render_template("login.html", next_url=next_url)
+
+    @app.route("/auth/forgot-password", methods=["GET", "POST"])
+    def auth_forgot_password():
+        if not auth_enabled:
+            return redirect(url_for("home"))
+
+        if request.method == "POST":
+            if not validate_csrf():
+                flash("Session invalide. Recharge la page puis réessaie.", "error")
+                return redirect(url_for("auth_forgot_password"))
+
+            email = request.form.get("email", "").strip().lower()
+            rgpd_auth_forgot_password_ok = request.form.get("rgpd_auth_forgot_password") == "on"
+
+            if not rgpd_auth_forgot_password_ok:
+                flash("Tu dois accepter la politique de confidentialité pour demander un lien.", "error")
+                return redirect(url_for("auth_forgot_password"))
+
+            generic_message = "Si un compte existe avec cet email, un lien de définition/changement de mot de passe a été envoyé."
+
+            if smtp_configured() and EMAIL_REGEX.match(email):
+                db = get_db()
+                user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+
+                if user is not None and bool(user["is_active"]):
+                    raw_token = secrets.token_urlsafe(32)
+                    token_hash = hash_password_reset_token(raw_token)
+                    created_at = datetime.utcnow().isoformat(timespec="seconds")
+                    expires_at = (datetime.utcnow() + timedelta(hours=password_reset_ttl_hours)).isoformat(timespec="seconds")
+
+                    db.execute(
+                        "DELETE FROM user_password_reset_tokens WHERE user_id = ? AND used_at IS NULL",
+                        (user["id"],),
+                    )
+                    db.execute(
+                        """
+                        INSERT INTO user_password_reset_tokens (user_id, token_hash, created_at, expires_at, used_at, sent_by_admin_user_id)
+                        VALUES (?, ?, ?, ?, NULL, NULL)
+                        """,
+                        (user["id"], token_hash, created_at, expires_at),
+                    )
+
+                    reset_url = url_for("auth_set_password", token=raw_token, _external=True)
+                    sent = send_password_reset_email(email, reset_url, expires_at)
+                    if sent:
+                        db.commit()
+                    else:
+                        db.execute(
+                            "DELETE FROM user_password_reset_tokens WHERE token_hash = ?",
+                            (token_hash,),
+                        )
+                        db.commit()
+
+            flash(generic_message, "success")
+            return redirect(url_for("auth_login"))
+
+        return render_template("forgot_password.html")
 
     @app.route("/auth/register", methods=["GET", "POST"])
     def auth_register():
@@ -692,6 +898,68 @@ def create_app() -> Flask:
             next_url = url_for("home")
         return render_template("register.html", next_url=next_url)
 
+    @app.route("/auth/set-password/<token>", methods=["GET", "POST"])
+    def auth_set_password(token: str):
+        if not auth_enabled:
+            return redirect(url_for("home"))
+
+        token_hash = hash_password_reset_token((token or "").strip())
+        now = datetime.utcnow().isoformat(timespec="seconds")
+        db = get_db()
+        token_row = db.execute(
+            """
+            SELECT t.id, t.user_id, t.expires_at, u.email
+            FROM user_password_reset_tokens t
+            JOIN users u ON u.id = t.user_id
+            WHERE t.token_hash = ?
+              AND t.used_at IS NULL
+              AND t.expires_at >= ?
+            LIMIT 1
+            """,
+            (token_hash, now),
+        ).fetchone()
+
+        if token_row is None:
+            flash("Lien invalide ou expiré.", "error")
+            return redirect(url_for("auth_login"))
+
+        if request.method == "POST":
+            if not validate_csrf():
+                flash("Session invalide. Recharge la page puis réessaie.", "error")
+                return redirect(url_for("auth_set_password", token=token))
+
+            password = request.form.get("password", "")
+            password_confirm = request.form.get("password_confirm", "")
+            rgpd_auth_password_reset_ok = request.form.get("rgpd_auth_password_reset") == "on"
+
+            if not rgpd_auth_password_reset_ok:
+                flash("Tu dois accepter la politique de confidentialité pour définir ton mot de passe.", "error")
+                return redirect(url_for("auth_set_password", token=token))
+
+            if len(password) < 8:
+                flash("Le mot de passe doit contenir au moins 8 caractères.", "error")
+                return redirect(url_for("auth_set_password", token=token))
+
+            if password != password_confirm:
+                flash("Les mots de passe ne correspondent pas.", "error")
+                return redirect(url_for("auth_set_password", token=token))
+
+            applied_at = datetime.utcnow().isoformat(timespec="seconds")
+            db.execute(
+                "UPDATE users SET password_hash = ?, consent_auth_at = ?, consent_auth_version = ? WHERE id = ?",
+                (generate_password_hash(password), applied_at, consent_version, token_row["user_id"]),
+            )
+            db.execute(
+                "UPDATE user_password_reset_tokens SET used_at = ? WHERE id = ?",
+                (applied_at, token_row["id"]),
+            )
+            db.commit()
+            session.clear()
+            flash("Mot de passe enregistré. Tu peux maintenant te connecter.", "success")
+            return redirect(url_for("auth_login"))
+
+        return render_template("set_password.html", account_email=token_row["email"])
+
     @app.post("/auth/logout")
     def auth_logout():
         if not validate_csrf():
@@ -716,7 +984,43 @@ def create_app() -> Flask:
         users = db.execute(
             "SELECT id, email, is_active, is_admin, consent_auth_at, consent_auth_version, created_at FROM users ORDER BY created_at ASC, id ASC"
         ).fetchall()
-        return render_template("admin_users.html", users=users)
+        active_admins_count = db.execute(
+            "SELECT COUNT(*) AS total FROM users WHERE is_admin = 1 AND is_active = 1"
+        ).fetchone()["total"]
+        return render_template("admin_users.html", users=users, active_admins_count=active_admins_count)
+
+    @app.get("/admin/feedbacks")
+    def admin_feedbacks():
+        current_user = get_current_user()
+        if current_user is None:
+            return redirect(url_for("auth_login", next=request.path))
+
+        if not bool(current_user["is_admin"]):
+            flash("Accès refusé: droits administrateur requis.", "error")
+            return redirect(url_for("home"))
+
+        db = get_db()
+        feedbacks = db.execute(
+            """
+            SELECT
+                f.id,
+                f.component,
+                f.message,
+                f.sender_name,
+                f.sender_email,
+                f.page_url,
+                f.created_at,
+                u.email AS submitted_by_email
+            FROM feedbacks f
+            LEFT JOIN users u ON u.id = f.submitted_by_user_id
+            ORDER BY f.created_at DESC, f.id DESC
+            """
+        ).fetchall()
+        return render_template(
+            "admin_feedbacks.html",
+            feedbacks=feedbacks,
+            feedback_component_labels=FEEDBACK_COMPONENT_LABELS,
+        )
 
     @app.post("/admin/users/create")
     def admin_create_user():
@@ -780,8 +1084,11 @@ def create_app() -> Flask:
         new_value = 0 if bool(target_user["is_active"]) else 1
 
         if new_value == 0 and bool(target_user["is_admin"]):
-            admins_count = db.execute("SELECT COUNT(*) AS total FROM users WHERE is_admin = 1 AND is_active = 1").fetchone()["total"]
-            if admins_count <= 1:
+            remaining_active_admins = db.execute(
+                "SELECT COUNT(*) AS total FROM users WHERE is_admin = 1 AND is_active = 1 AND id != ?",
+                (user_id,),
+            ).fetchone()["total"]
+            if remaining_active_admins < 1:
                 flash("Impossible: il doit rester au moins un administrateur actif.", "error")
                 return redirect(url_for("admin_users"))
 
@@ -814,14 +1121,75 @@ def create_app() -> Flask:
         new_value = 0 if bool(target_user["is_admin"]) else 1
 
         if new_value == 0 and bool(target_user["is_active"]):
-            active_admins_count = db.execute("SELECT COUNT(*) AS total FROM users WHERE is_admin = 1 AND is_active = 1").fetchone()["total"]
-            if active_admins_count <= 1:
+            remaining_active_admins = db.execute(
+                "SELECT COUNT(*) AS total FROM users WHERE is_admin = 1 AND is_active = 1 AND id != ?",
+                (user_id,),
+            ).fetchone()["total"]
+            if remaining_active_admins < 1:
                 flash("Impossible: il doit rester au moins un administrateur actif.", "error")
                 return redirect(url_for("admin_users"))
 
         db.execute("UPDATE users SET is_admin = ? WHERE id = ?", (new_value, user_id))
         db.commit()
         flash("Rôle administrateur mis à jour.", "success")
+        return redirect(url_for("admin_users"))
+
+    @app.post("/admin/users/<int:user_id>/send-password-reset")
+    def admin_send_password_reset(user_id: int):
+        if not validate_csrf():
+            flash("Session invalide. Recharge la page puis réessaie.", "error")
+            return redirect(url_for("admin_users"))
+
+        current_user = get_current_user()
+        if current_user is None or not bool(current_user["is_admin"]):
+            flash("Accès refusé: droits administrateur requis.", "error")
+            return redirect(url_for("home"))
+
+        if not smtp_configured():
+            flash("SMTP non configuré: envoi d'email impossible.", "error")
+            return redirect(url_for("admin_users"))
+
+        db = get_db()
+        target_user = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        if target_user is None:
+            flash("Compte introuvable.", "error")
+            return redirect(url_for("admin_users"))
+
+        target_email = (target_user["email"] or "").strip().lower()
+        if not EMAIL_REGEX.match(target_email):
+            flash("Email utilisateur invalide.", "error")
+            return redirect(url_for("admin_users"))
+
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hash_password_reset_token(raw_token)
+        created_at = datetime.utcnow().isoformat(timespec="seconds")
+        expires_at = (datetime.utcnow() + timedelta(hours=password_reset_ttl_hours)).isoformat(timespec="seconds")
+
+        db.execute(
+            "DELETE FROM user_password_reset_tokens WHERE user_id = ? AND used_at IS NULL",
+            (target_user["id"],),
+        )
+        db.execute(
+            """
+            INSERT INTO user_password_reset_tokens (user_id, token_hash, created_at, expires_at, used_at, sent_by_admin_user_id)
+            VALUES (?, ?, ?, ?, NULL, ?)
+            """,
+            (target_user["id"], token_hash, created_at, expires_at, current_user["id"]),
+        )
+
+        reset_url = url_for("auth_set_password", token=raw_token, _external=True)
+        sent = send_password_reset_email(target_email, reset_url, expires_at)
+        if not sent:
+            db.execute(
+                "DELETE FROM user_password_reset_tokens WHERE token_hash = ?",
+                (token_hash,),
+            )
+            db.commit()
+            flash("Email non envoyé: vérifie la configuration SMTP.", "error")
+            return redirect(url_for("admin_users"))
+
+        db.commit()
+        flash("Email envoyé à l'utilisateur pour définir/changer son mot de passe.", "success")
         return redirect(url_for("admin_users"))
 
     @app.get("/create")
@@ -901,6 +1269,44 @@ def create_app() -> Flask:
             )
             flash("Sondage archivé.", "success")
         db.commit()
+        return redirect(url_for("my_polls"))
+
+    @app.post("/poll/<token>/delete")
+    def delete_poll(token: str):
+        if not validate_csrf():
+            flash("Session invalide. Recharge la page puis réessaie.", "error")
+            return redirect(url_for("my_polls"))
+
+        current_user = get_current_user()
+        if current_user is None:
+            return redirect(url_for("auth_login", next=url_for("my_polls")))
+
+        poll = get_poll_by_token(token)
+        if poll is None:
+            flash("Sondage introuvable.", "error")
+            return redirect(url_for("my_polls"))
+
+        can_manage = bool(current_user["is_admin"]) or (
+            poll["created_by_user_id"] is not None and int(poll["created_by_user_id"]) == int(current_user["id"])
+        )
+        if not can_manage:
+            flash("Accès refusé pour ce sondage.", "error")
+            return redirect(url_for("my_polls"))
+
+        if not poll["archived_at"]:
+            flash("Seuls les sondages archivés peuvent être supprimés.", "error")
+            return redirect(url_for("my_polls"))
+
+        db = get_db()
+        db.execute("DELETE FROM votes WHERE poll_id = ?", (poll["id"],))
+        db.execute("DELETE FROM slots WHERE poll_id = ?", (poll["id"],))
+        db.execute("DELETE FROM polls WHERE id = ?", (poll["id"],))
+        db.commit()
+
+        session.pop(admin_session_key(poll["id"]), None)
+        session.pop(voter_session_key(poll["id"]), None)
+
+        flash("Le sondage archivé a été supprimé définitivement.", "success")
         return redirect(url_for("my_polls"))
 
     @app.post("/create")
@@ -1051,7 +1457,8 @@ def create_app() -> Flask:
         comments = participant_comments(poll["id"])
         top_choice = recommendation(summary_sorted)
         admin_mode = is_admin_authenticated(poll)
-        closed = is_deadline_passed(poll["deadline_at"])
+        is_archived = bool(poll["archived_at"])
+        closed = is_archived or is_deadline_passed(poll["deadline_at"])
 
         organizer_prefill_name = ""
         organizer_prefill_email = ""
@@ -1159,6 +1566,7 @@ def create_app() -> Flask:
             admin_mode=admin_mode,
             is_poll_owner=is_poll_owner,
             closed=closed,
+            is_archived=is_archived,
             top_choice=top_choice,
             organizer_prefill_name=organizer_prefill_name,
             organizer_prefill_email=organizer_prefill_email,
@@ -1220,6 +1628,10 @@ def create_app() -> Flask:
         if poll is None:
             flash("Sondage introuvable.", "error")
             return redirect(url_for("home"))
+
+        if poll["archived_at"]:
+            flash("Le sondage est archivé: les votes sont fermés.", "error")
+            return redirect(url_for("view_poll", token=token))
 
         if is_deadline_passed(poll["deadline_at"]):
             flash("Le sondage est clôturé (date limite dépassée).", "error")
@@ -1375,6 +1787,23 @@ def create_app() -> Flask:
             flash("Décris un peu plus ton feedback (minimum 8 caractères).", "error")
             return redirect(safe_redirect)
 
+        current_user = get_current_user()
+        submitted_by_user_id = current_user["id"] if current_user else None
+
+        try:
+            save_feedback(
+                component=component,
+                message_text=message_text,
+                sender_name=sender_name,
+                sender_email=sender_email,
+                page_url=page_url,
+                submitted_by_user_id=submitted_by_user_id,
+            )
+        except Exception as exc:
+            app.logger.exception("Erreur sauvegarde feedback: %s", exc)
+            flash("Feedback non enregistré. Réessaie dans un instant.", "error")
+            return redirect(safe_redirect)
+
         sent = send_feedback_email(
             component=component,
             message_text=message_text,
@@ -1386,7 +1815,7 @@ def create_app() -> Flask:
         if sent:
             flash("Merci 🙌 Ton feedback a bien été envoyé.", "success")
         else:
-            flash("Feedback non envoyé: vérifie la configuration SMTP/FEEDBACK_TO_EMAIL.", "error")
+            flash("Feedback enregistré ✅ (email non envoyé: vérifie SMTP/FEEDBACK_TO_EMAIL).", "error")
 
         return redirect(safe_redirect)
 

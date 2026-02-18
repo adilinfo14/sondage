@@ -38,6 +38,10 @@
         Pas encore de compte ? <a href="{{ url_for('auth_register', next=next_url) }}">Créer un compte</a>
     </p>
     {% endif %}
+
+    <p class="sub" style="margin-top: 8px;">
+        <a href="{{ url_for('auth_forgot_password') }}">Mot de passe oublié ?</a>
+    </p>
 </section>
 
 <section class="card">

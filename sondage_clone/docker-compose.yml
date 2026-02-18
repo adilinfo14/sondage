@@ -1,0 +1,42 @@
+services:
+  sondage:
+    build:
+      context: ..
+      dockerfile: sondage_clone/Dockerfile
+    container_name: sondage-clone
+    restart: unless-stopped
+    environment:
+      PORT: "5050"
+      FLASK_DEBUG: "0"
+      SONDAGE_COOKIE_SECURE: "1"
+      SONDAGE_COOKIE_SAMESITE: "Strict"
+      SONDAGE_SECRET_KEY: "change-me-very-long-random-string"
+      SONDAGE_DB_PATH: "/app/data/sondage.db"
+      SONDAGE_SESSION_TIMEOUT_MINUTES: "720"
+      SONDAGE_AUTH_ENABLED: "1"
+      SONDAGE_AUTH_ALLOW_REGISTRATION: "1"
+      SONDAGE_BOOTSTRAP_ADMIN_EMAIL: "admin@example.com"
+      SMTP_HOST: "smtp.mail.ovh.net"
+      SMTP_PORT: "587"
+      SMTP_USE_TLS: "1"
+      SMTP_USE_SSL: "0"
+      SMTP_USER: "contact@example.com"
+      SMTP_PASS: "replace-with-your-password-or-app-password"
+      SMTP_FROM_EMAIL: "contact@example.com"
+      SMTP_FROM_NAME: "Sondage-noschoixpourvous"
+      FEEDBACK_TO_EMAIL: "contact@example.com"
+    ports:
+      - "127.0.0.1:5050:5050"
+    volumes:
+      - sondage_data:/app/data
+    networks:
+      - default
+      - proxy-net
+
+volumes:
+  sondage_data:
+
+networks:
+  proxy-net:
+    external: true
+
