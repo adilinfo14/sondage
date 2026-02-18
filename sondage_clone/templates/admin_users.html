@@ -56,7 +56,8 @@
                     <td>{% if user.is_admin %}Administrateur{% else %}Utilisateur{% endif %}</td>
                     <td>
                         {% if user.consent_auth_at %}
-                        <span {% if user.consent_auth_version %}title="Version RGPD: {{ user.consent_auth_version }}"{% endif %}>
+                        <span {% if user.consent_auth_version %}title="Version RGPD: {{ user.consent_auth_version }}" {%
+                            endif %}>
                             {{ user.consent_auth_at | datetime_fr }}
                         </span>
                         {% else %}
@@ -74,16 +75,18 @@
                             </form>
                             <form action="{{ url_for('admin_toggle_user_admin', user_id=user.id) }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                {% set is_last_active_admin = user.is_admin and user.is_active and active_admins_count <= 1 %}
-                                <button type="submit" class="admin-action-btn" {% if is_last_active_admin %}disabled
-                                    title="Impossible: il doit rester au moins un administrateur actif."{% endif %}>
+                                {% set is_last_active_admin = user.is_admin and user.is_active and active_admins_count
+                                <= 1 %} <button type="submit" class="admin-action-btn" {% if is_last_active_admin
+                                    %}disabled title="Impossible: il doit rester au moins un administrateur actif." {%
+                                    endif %}>
                                     {% if user.is_admin %}Retirer admin{% else %}Donner admin{% endif %}
-                                </button>
+                                    </button>
                             </form>
                             <form action="{{ url_for('admin_send_password_reset', user_id=user.id) }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="admin-action-btn"
-                                    title="Envoyer un email pour définir ou changer le mot de passe">Envoyer lien MDP</button>
+                                    title="Envoyer un email pour définir ou changer le mot de passe">Envoyer lien
+                                    MDP</button>
                             </form>
                         </div>
                     </td>
