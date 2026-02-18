@@ -132,8 +132,13 @@
                     {% if app_auth_enabled and app_auth_logged_in %}
                     <a class="nav-btn" href="{{ url_for('my_polls') }}">Mes sondages</a>
                     {% if app_auth_user_is_admin %}
-                    <a class="nav-btn" href="{{ url_for('admin_users') }}">Administration comptes</a>
-                    <a class="nav-btn" href="{{ url_for('admin_feedbacks') }}">Consultation feedbacks</a>
+                    <details class="admin-nav-group">
+                        <summary class="nav-btn admin-nav-toggle">Administration</summary>
+                        <div class="admin-nav-submenu">
+                            <a class="nav-btn admin-submenu-link" href="{{ url_for('admin_users') }}">Comptes</a>
+                            <a class="nav-btn admin-submenu-link" href="{{ url_for('admin_feedbacks') }}">Feedback</a>
+                        </div>
+                    </details>
                     {% endif %}
                     {% endif %}
                     {% if minimalist_poll_view and app_auth_enabled and not app_auth_logged_in %}
