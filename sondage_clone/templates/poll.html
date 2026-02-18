@@ -65,21 +65,21 @@
         {% if poll_response_mode == 'single' %}
         <div class="slot-grid">
             {% for slot in slots %}
-            <label class="slot-item vote-choice-card">
+            <label class="slot-item vote-choice-card" style="display:flex;align-items:center;gap:10px;">
                 <input type="radio" name="selected_slot" value="{{ slot.id }}" {% if
                     existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}checked{% elif not edit_vote_mode and
                     loop.first %}checked{% endif %}>
-                <span class="slot-label vote-choice-label">{{ slot.label }}</span>
+                <span class="slot-label vote-choice-label" style="margin-left:0;">{{ slot.label }}</span>
             </label>
             {% endfor %}
         </div>
         {% else %}
         <div class="slot-grid">
             {% for slot in slots %}
-            <label class="slot-item vote-choice-card">
+            <label class="slot-item vote-choice-card" style="display:flex;align-items:center;gap:10px;">
                 <input type="checkbox" name="selected_slots" value="{{ slot.id }}" {% if
                     existing_choice_by_slot.get(slot.id, 'no' )=='yes' %}checked{% endif %}>
-                <span class="slot-label vote-choice-label">{{ slot.label }}</span>
+                <span class="slot-label vote-choice-label" style="margin-left:0;">{{ slot.label }}</span>
             </label>
             {% endfor %}
         </div>
@@ -165,19 +165,21 @@
     <div class="results-grid">
         {% for row in summary %}
         {% set rank = loop.index %}
+        {% set rank_label = (rank ~ 'er') if rank == 1 else (rank ~ 'ème') %}
         {% set share_percent = ((row.yes_count * 100) / ns.total_yes) if ns.total_yes > 0 else 0 %}
         {% set share_percent_display = share_percent | round(1) %}
-        {% set share_width = 6 if row.yes_count > 0 and share_percent < 6 else (share_percent | round(2)) %} <article
-            class="result-card result-visual-card">
-            <p class="result-rank">#{{ rank }}</p>
-            <p class="slot-label">{{ row.label }}</p>
-            <div class="result-metrics">
-                <span>🗳️ Sélections <strong>{{ row.yes_count }}</strong></span>
-                <span>📊 Part <strong>{{ share_percent_display }}%</strong></span>
+        {% set share_width = 6 if row.yes_count > 0 and share_percent < 6 else (share_percent | round(2)) %}
+        <article class="result-card result-visual-card">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <span class="result-rank">{{ rank_label }}</span>
+                <span class="slot-label" style="font-weight:600;">{{ row.label }}</span>
+                <span class="result-metrics" style="margin-left:auto;gap:10px;">
+                    🗳️ <strong>{{ row.yes_count }}</strong> &nbsp; 📊 <strong>{{ share_percent_display }}%</strong>
+                </span>
             </div>
             <progress class="result-progress" value="{{ share_percent_display }}" max="100"
                 aria-label="{{ row.label }}: part {{ share_percent_display }}%"></progress>
-            </article>
+        </article>
             {% endfor %}
     </div>
 </section>
