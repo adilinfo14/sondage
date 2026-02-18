@@ -2653,7 +2653,14 @@ td:first-child {
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
-    width: 100%;
+    flex: 1 1 auto;
+}
+
+.top-nav-extras {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .mobile-nav-toggle {
@@ -2664,11 +2671,11 @@ td:first-child {
     border: 1px solid var(--surface-soft-border);
     color: var(--text);
     font-weight: 800;
+    font-size: 1.05rem;
     box-shadow: none;
 }
 
 .theme-picker {
-    margin-left: auto;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -2839,6 +2846,19 @@ td:first-child {
     overflow-wrap: anywhere;
 }
 
+.feedback-action-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 124px;
+    text-decoration: none;
+    border-radius: 12px;
+}
+
+.feedback-action-btn:hover {
+    text-decoration: none;
+}
+
 @media (max-width: 700px) {
     .hero h1 {
         font-size: clamp(1.35rem, 7vw, 1.9rem);
@@ -2926,16 +2946,24 @@ td:first-child {
         text-align: center;
     }
 
-    .top-nav-menu .theme-picker {
+    .top-nav-extras {
         margin-left: 0;
-        width: 100%;
+        margin-top: 10px;
         display: grid;
-        gap: 6px;
+        gap: 8px;
     }
 
-    .top-nav-menu .theme-picker select {
+    .top-nav-extras .feedback-nav-btn,
+    .top-nav-extras .theme-picker,
+    .top-nav-extras .theme-picker select {
         width: 100%;
         min-width: 0;
+    }
+
+    .top-nav-extras .theme-picker {
+        margin-left: 0;
+        display: grid;
+        gap: 6px;
     }
 
     .form-actions {

@@ -16,10 +16,11 @@
                 <tr>
                     <th>Date</th>
                     <th>Composant</th>
-                    <th>Message (aperçu)</th>
+                    <th>Aperçu</th>
                     <th>Statut</th>
                     <th>Nom</th>
                     <th>Email</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -28,9 +29,7 @@
                     <td>{{ feedback.created_at | datetime_fr }}</td>
                     <td>{{ feedback_component_labels.get(feedback.component, feedback.component) }}</td>
                     <td>
-                        <a href="{{ url_for('admin_feedback_detail', feedback_id=feedback.id) }}">
-                            {{ feedback.message[:140] }}{% if feedback.message|length > 140 %}…{% endif %}
-                        </a>
+                        {{ feedback.message[:110] }}{% if feedback.message|length > 110 %}…{% endif %}
                     </td>
                     <td>
                         <span class="feedback-status feedback-status-{{ feedback.status }}">
@@ -39,6 +38,10 @@
                     </td>
                     <td>{{ feedback.sender_name or '-' }}</td>
                     <td>{{ feedback.sender_email or '-' }}</td>
+                    <td>
+                        <a class="admin-action-btn feedback-action-btn"
+                            href="{{ url_for('admin_feedback_detail', feedback_id=feedback.id) }}">Voir détail</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

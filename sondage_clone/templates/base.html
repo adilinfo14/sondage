@@ -131,10 +131,18 @@
                     {% endif %}
                     {% if app_auth_enabled and app_auth_logged_in %}
                     <a class="nav-btn" href="{{ url_for('my_polls') }}">Mes sondages</a>
+                    {% if app_auth_user_is_admin %}
+                    <a class="nav-btn" href="{{ url_for('admin_users') }}">Administration comptes</a>
+                    <a class="nav-btn" href="{{ url_for('admin_feedbacks') }}">Consultation feedbacks</a>
+                    {% endif %}
                     {% endif %}
                     {% if minimalist_poll_view and app_auth_enabled and not app_auth_logged_in %}
+                    <a class="nav-btn" href="{{ url_for('auth_login', next=request.path) }}">Connexion</a>
                     <a class="nav-btn" href="{{ url_for('auth_register', next=request.path) }}">Inscription</a>
-                    {% else %}
+                    {% endif %}
+                </div>
+                <div class="top-nav-extras">
+                    {% if not (minimalist_poll_view and app_auth_enabled and not app_auth_logged_in) %}
                     <button type="button" id="openFeedbackBtn" class="feedback-nav-btn"
                         aria-label="Ouvrir le formulaire de feedback">💬 Feedback</button>
                     {% endif %}
@@ -159,10 +167,6 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <span class="sub auth-session-text">
                     Connecté : {{ app_auth_user_email }}
-                    {% if app_auth_user_is_admin %}
-                    · <a href="{{ url_for('admin_users') }}">Administration comptes</a>
-                    · <a href="{{ url_for('admin_feedbacks') }}">Consultation feedbacks</a>
-                    {% endif %}
                 </span>
                 <button type="submit" class="logout-btn">Déconnexion</button>
             </form>
