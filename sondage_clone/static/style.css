@@ -76,6 +76,12 @@ body.theme-light .required-label,
     color: #111 !important;
     text-shadow: none !important;
 }
+
+/* Surcharge variable pour coquelicot et galaxy jour */
+[data-theme="coquelicot"], [data-theme="galaxy"] {
+    --form-label-color: #2a3a4a !important;
+}
+}
 /* Surcharge ultra spécifique pour coquelicot et galaxy (jour) */
 [data-theme="coquelicot"] .form-label,
 [data-theme="coquelicot"] .required-label,
