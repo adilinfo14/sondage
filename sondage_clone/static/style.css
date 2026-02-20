@@ -47,7 +47,17 @@
     }
 }
 /* Boutons actions sondage mignons et harmonisés */
-/* Harmonisation stricte de la largeur des boutons d'action sondage */
+        }
+        [data-theme="coquelicot"] .form-label,
+        [data-theme="coquelicot"] .required-label {
+            color: #2a3a4a !important;
+            text-shadow: none !important;
+        }
+        [data-theme="galaxy"] .form-label,
+        [data-theme="galaxy"] .required-label {
+            color: #2a3a4a !important;
+            text-shadow: none !important;
+        }
 .btn-poll-action {
     min-width: 170px;
 }
