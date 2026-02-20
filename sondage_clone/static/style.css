@@ -1960,64 +1960,6 @@ a:hover {
     gap: 14px 16px;
 }
 
-#createPollForm>label:not(.consent-row)::before {
-    content: "Phase 00 · Pipeline";
-    font-size: var(--fs-caption);
-    font-weight: var(--fw-extrabold);
-    letter-spacing: 0.02em;
-    color: var(--accent-2);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    width: fit-content;
-    padding: 2px 10px;
-    border-radius: 999px;
-    border: 1px dashed color-mix(in srgb, var(--accent-2) 60%, transparent);
-    background: color-mix(in srgb, var(--surface-soft) 75%, white 25%);
-}
-
-[data-theme="default-dark"] #createPollForm>label:not(.consent-row)::before,
-[data-theme="nature-dark"] #createPollForm>label:not(.consent-row)::before {
-    color: var(--text);
-    border-color: rgba(190, 200, 255, 0.42);
-    background: rgba(255, 255, 255, 0.14);
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(1)::before {
-    content: "Phase 01 · Cadrage";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(2)::before {
-    content: "Phase 02 · Modèle";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(3)::before {
-    content: "Phase 03 · Règles de vote";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(4)::before {
-    content: "Phase 04 · Spécification";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(5)::before {
-    content: "Phase 05 · Responsable";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(6)::before {
-    content: "Phase 06 · Deadline";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(7)::before {
-    content: "Phase 07 · Sécurité";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(8)::before {
-    content: "Phase 08 · Diffusion";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(9)::before {
-    content: "Phase 09 · Scénarios";
-}
 
 #createPollForm>label:not(.consent-row) {
     position: relative;
