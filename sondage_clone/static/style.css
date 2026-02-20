@@ -1,3 +1,13 @@
+@media (max-width: 600px) {
+    #createPollForm input[type="datetime-local"] {
+        width: 100%;
+        max-width: 340px;
+        min-width: 0;
+        margin-left: 0;
+        margin-right: 0;
+        box-sizing: border-box;
+    }
+}
 /* Boutons actions sondage uniformes */
 .btn-poll-action {
     min-width: 80px;
