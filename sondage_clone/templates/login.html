@@ -25,9 +25,7 @@
 
         <label class="consent-row">
             <input type="checkbox" name="rgpd_auth_login" required>
-            <span class="consent-text-compact">J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de
-                    confidentialité (RGPD)</a> pour le traitement de mes données de connexion (version {{
-                consent_version }}).</span>
+            <span class="consent-text-compact">J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de confidentialité</a>.</span>
         </label>
 
         <button type="submit">Se connecter</button>
@@ -44,10 +42,4 @@
     </p>
 </section>
 
-<section class="card">
-    <h2>RGPD — Connexion</h2>
-    <p class="sub">Les données traitées pour l’authentification sont l’email et un hash de mot de passe (jamais le mot
-        de passe en clair).</p>
-    <p class="sub">Une preuve de consentement (date/heure + version RGPD) est enregistrée lors de la connexion.</p>
-</section>
 {% endblock %}

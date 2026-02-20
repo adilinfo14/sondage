@@ -1,3 +1,17 @@
+#createPollForm input[name="deadline_at"] {
+    max-width: 220px;
+    min-width: 120px;
+    width: 100%;
+    margin: 0 auto;
+    display: block;
+}
+@media (max-width: 700px) {
+    body.theme-light .form-label,
+    body.theme-light .required-label {
+        color: #2a3a4a !important;
+        text-shadow: none !important;
+    }
+}
 /* Boutons actions sondage mignons et harmonisés */
 /* Harmonisation stricte de la largeur des boutons d'action sondage */
 .btn-poll-action {
