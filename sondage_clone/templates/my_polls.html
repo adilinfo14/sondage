@@ -17,12 +17,12 @@
             <p class="meta">Participants votants : {{ poll.votes_count }}</p>
             <p class="meta">Créé le : {{ poll.created_at | datetime_fr }}</p>
             <div class="poll-card-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                <a href="{{ url_for('view_poll', token=poll.token) }}" class="btn-poll-action poll-action-open"
+                <a href="{{ url_for('view_poll', token=poll.token) }}" class="btn-poll-action poll-action-open" style="width:170px;"
                     title="Voir et partager le sondage">
                     <span>🔗</span> Ouvrir
                 </a>
                 {% if poll.votes_count == 0 %}
-                <a href="{{ url_for('edit_poll', token=poll.token) }}" class="btn-poll-action poll-action-edit"
+                <a href="{{ url_for('edit_poll', token=poll.token) }}" class="btn-poll-action poll-action-edit" style="width:170px;"
                     title="Modifier ce sondage">
                     <span>✏️</span> Modifier
                 </a>
@@ -31,7 +31,7 @@
                     class="poll-card-action-form" style="margin:0;display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="action" value="archive">
-                    <button type="submit" class="btn-poll-action poll-action-archive" title="Archiver ce sondage">
+                    <button type="submit" class="btn-poll-action poll-action-archive" style="width:170px;" title="Archiver ce sondage">
                         <span>📦</span> Archiver
                     </button>
                 </form>
