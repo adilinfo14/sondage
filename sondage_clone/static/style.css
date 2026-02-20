@@ -54,6 +54,23 @@ body.theme-light .required-label,
     color: #111 !important;
     text-shadow: none !important;
 }
+/* Surcharge ultra spécifique pour coquelicot et galaxy (jour) */
+[data-theme="coquelicot"] .form-label,
+[data-theme="coquelicot"] .required-label,
+[data-theme="galaxy"] .form-label,
+[data-theme="galaxy"] .required-label {
+    color: #111 !important;
+    text-shadow: none !important;
+}
+@media (max-width: 700px) {
+    [data-theme="coquelicot"] .form-label,
+    [data-theme="coquelicot"] .required-label,
+    [data-theme="galaxy"] .form-label,
+    [data-theme="galaxy"] .required-label {
+        color: #111 !important;
+        text-shadow: none !important;
+    }
+}
 @media (max-width: 700px) {
     [data-theme="default"] .form-label,
     [data-theme="default"] .required-label,
