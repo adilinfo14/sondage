@@ -28,15 +28,14 @@
         </label>
 
         <label class="consent-row">
-            <input type="checkbox" name="rgpd_auth_register" required>
-            <span class="consent-text-compact">J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de
-                    confidentialité (RGPD)</a> pour la création de mon compte (version {{ consent_version }}).</span>
+                <input type="checkbox" name="rgpd_auth_register" required>
+                <span class="consent-text-compact">J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de confidentialité</a> pour la création de mon compte.</span>
         </label>
 
         <button type="submit">Créer le compte</button>
     </form>
 
-    <p class="sub">La création du compte enregistre une preuve de consentement (date/heure + version RGPD).</p>
+    <p class="sub">La création du compte enregistre une preuve de consentement (date/heure) lors de l'inscription.</p>
 
     <p class="sub" style="margin-top: 14px;">
         Déjà un compte ? <a href="{{ url_for('auth_login', next=next_url) }}">Se connecter</a>

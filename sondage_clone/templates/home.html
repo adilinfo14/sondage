@@ -3,7 +3,7 @@
 {% block content %}
 <section class="card hero">
     <p class="eyebrow">🗳️ Outil de planification et de vote</p>
-    <h1>Créer un sondage professionnel</h1>
+    <h1>Créer un sondage</h1>
     <p class="sub">Prise de rendez-vous, vote d'équipe, choix d'idées: tout en un, avec accès organisateur sécurisé.</p>
 </section>
 
@@ -24,6 +24,16 @@
     </span>
     <form id="createPollForm" action="{{ url_for('create_poll') }}" method="post" class="poll-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+
+        <label class="full-width">
+            Nom de l'organisateur
+            <input type="text" name="creator_name" placeholder="Ex: Prénom Nom" value="{{
+                (app_auth_user_email.split('@')[0] | replace('.', ' ') | replace('_', ' ') | title)
+                if app_auth_logged_in and app_auth_user_email else ''
+            }}" required>
+            <span class="meta">Préremlpi depuis ton compte, modifiable si besoin.</span>
+        </label>
 
         <label class="full-width">
             Titre du sondage
@@ -74,27 +84,25 @@
 
         <label class="full-width">
             Emails des participants (optionnel)
-            <textarea name="participant_emails" rows="3"
-                placeholder="Un email par ligne, ou séparés par virgule. Ex: exemple1@email.com, exemple2@email.com"></textarea>
+            <textarea name="participant_emails" rows="5"
+                placeholder="Une adresse par ligne"></textarea>
         </label>
 
         <label class="full-width">
             Créneaux / options (un par ligne)
-            <textarea name="slots" rows="7"
+            <textarea name="slots" rows="12"
                 placeholder="Exemple réunion :&#10;Lundi 19/02 - 10:00&#10;Lundi 19/02 - 14:00&#10;Mardi 20/02 - 09:30&#10;&#10;Exemple avis :&#10;Option A&#10;Option B&#10;Option C"
                 required></textarea>
         </label>
 
         <label class="consent-row">
             <input type="checkbox" name="rgpd_email_rights">
-            <span>Je confirme disposer du consentement des participants avant envoi d’emails d’invitation (version {{
-                consent_version }}).</span>
+            <span>Je confirme disposer du consentement des participants avant envoi d’emails d’invitation.</span>
         </label>
 
         <label class="consent-row">
             <input type="checkbox" name="rgpd_creator" required>
-            <span>J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de
-                    confidentialité (RGPD)</a> (version {{ consent_version }}).</span>
+            <span>J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de confidentialité</a>.</span>
         </label>
 
         <div class="form-actions">
