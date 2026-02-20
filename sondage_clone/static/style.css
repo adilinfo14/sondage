@@ -51,6 +51,16 @@
 .btn-poll-action {
     min-width: 170px;
 }
+        [data-theme="coquelicot"] .form-label,
+        [data-theme="coquelicot"] .required-label {
+            color: #2a3a4a !important;
+            text-shadow: none !important;
+        }
+        [data-theme="galaxy"] .form-label,
+        [data-theme="galaxy"] .required-label {
+            color: #2a3a4a !important;
+            text-shadow: none !important;
+        }
 
 /* Force couleur noire pour tous les titres sur tous les thèmes jour */
 [data-theme="default"] .form-label,
