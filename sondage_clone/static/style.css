@@ -21,6 +21,13 @@
     [data-theme="nature"] .required-label {
         color: #2a3a4a !important;
         text-shadow: none !important;
+        }
+        [data-theme="coquelicot"] .form-label,
+        [data-theme="coquelicot"] .required-label,
+        [data-theme="galaxy"] .form-label,
+        [data-theme="galaxy"] .required-label {
+            color: #2a3a4a !important;
+            text-shadow: none !important;
     }
     body.theme-dark .form-label,
     body.theme-dark .required-label,
