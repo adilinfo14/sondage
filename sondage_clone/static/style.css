@@ -9,7 +9,11 @@
     body.theme-light .form-label,
     body.theme-light .required-label,
     .theme-light .form-label,
-    .theme-light .required-label {
+    .theme-light .required-label,
+    [data-theme="default"] .form-label,
+    [data-theme="default"] .required-label,
+    [data-theme="nature"] .form-label,
+    [data-theme="nature"] .required-label {
         color: #2a3a4a !important;
         text-shadow: none !important;
     }
