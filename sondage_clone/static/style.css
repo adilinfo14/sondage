@@ -80,6 +80,22 @@
     --link: #e03169;
 }
 
+/* Variables spécifiques pour Nature / oiseau (jour) */
+[data-theme="nature"], [data-theme="oiseau"] {
+    --accent: #3cb371;
+    --accent-2: #217a3c;
+    --bg-1: #f8fcf8;
+    --bg-2: #eafbe7;
+    --bg-spot-1: #eafbe7;
+    --bg-spot-2: #f8fcf8;
+    --card: rgba(255, 255, 255, 0.92);
+    --card-border: rgba(60, 179, 113, 0.18);
+    --text: #1b3a1b;
+    --muted: #217a3c;
+    --link: #217a3c;
+}
+}
+
 /* Étoile rouge pour les champs requis */
 .required-label .required-star,
 label .required-star,
