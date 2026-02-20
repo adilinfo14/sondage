@@ -1,42 +1,158 @@
-/* Boutons actions sondage uniformes */
+/* Boutons actions sondage mignons et harmonisés */
+/* Harmonisation stricte de la largeur des boutons d'action sondage */
 .btn-poll-action {
-    min-width: 80px;
-    max-width: 100px;
-    flex: 1 1 80px;
+    min-width: 170px;
+    max-width: 170px;
+    flex: 1 1 170px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 4px 0;
-    border-radius: 7px;
-    font-weight: 500;
-    font-size: 0.95rem;
+    gap: 6px;
+    padding: 7px 0;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 1.08em;
     text-decoration: none;
     border: none;
     cursor: pointer;
-    transition: background 0.18s, color 0.18s;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    box-shadow: 0 2px 8px rgba(44,71,152,0.07);
+    outline: none;
 }
-
 .btn-poll-action span {
-    font-size: 1em;
+    font-size: 1.18em;
+    margin-right: 2px;
 }
-
 .poll-action-open {
-    background: #f3f6ff;
+    background: linear-gradient(90deg, #f3f6ff 60%, #e3e9fa 100%);
     color: #1a237e;
+    border: 1.5px solid #b3c6ff55;
 }
-
 .poll-action-open:hover {
     background: #e3e9fa;
+    color: #0d133d;
+    box-shadow: 0 4px 16px #b3c6ff33;
 }
-
 .poll-action-edit {
-    background: #e3fcec;
+    background: linear-gradient(90deg, #e3fcec 60%, #c6f6d5 100%);
     color: #087f5b;
+    border: 1.5px solid #3cb37155;
 }
-
 .poll-action-edit:hover {
     background: #c6f6d5;
+    color: #065f46;
+    box-shadow: 0 4px 16px #3cb37133;
+}
+.poll-action-archive {
+    background: linear-gradient(90deg, #fff3e0 60%, #ffe0b2 100%);
+    color: #b26a00;
+    border: 1.5px solid #ffb30055;
+}
+.poll-action-archive:hover {
+    background: #ffe0b2;
+    color: #7c4700;
+    box-shadow: 0 4px 16px #ffb30033;
+}
+
+/* Style harmonieux pour les titres de champs, dynamique selon le thème et RGAA */
+.form-label, .required-label {
+    display: inline-block;
+    font-weight: 600;
+    font-size: 1.08em;
+    margin-bottom: 4px;
+    letter-spacing: 0.01em;
+    transition: color 0.2s;
+}
+
+:root {
+    --form-label-color: #2a3a4a; /* Couleur par défaut (thème clair) */
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --form-label-color: #fff;
+    }
+    .form-label, .required-label {
+        color: #fff !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.18) !important;
+    }
+}
+
+body.theme-dark .form-label,
+body.theme-dark .required-label,
+.theme-dark .form-label,
+.theme-dark .required-label {
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.18) !important;
+}
+body.theme-light {
+    --form-label-color: #2a3a4a;
+}
+
+.required-label .required-star {
+    color: #e53935;
+    font-size: 1em;
+    margin-left: 3px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+.badge-label {
+    display: inline-block;
+    padding: 2px 14px;
+    border-radius: 999px;
+    border: 1.5px dashed #3cb37155;
+    background: #f8fcf8;
+    color: #228b22;
+    font-weight: bold;
+    font-size: 1.13em;
+    margin-bottom: 0.5em;
+    margin-left: 2px;
+    margin-top: 2px;
+}
+.required-star {
+    color: #e03131;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-left: 0.18em;
+    vertical-align: middle;
+}
+#createPollForm>label:not(.consent-row):nth-of-type(1)::after {
+    content: "*";
+    color: #e03131;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-left: 0.25em;
+    vertical-align: middle;
+}
+#createPollForm input[name="title"][required] {
+    position: relative;
+    padding-right: 2em;
+}
+#createPollForm input[name="title"][required]::after {
+    content: "*";
+    color: #e03131;
+    font-weight: bold;
+    font-size: 1.3em;
+    position: absolute;
+    right: 0.7em;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+#createPollForm>label:not(.consent-row):nth-of-type(1)::after {
+    content: " 🌟";
+    color: #f7b731;
+    font-size: 1.1em;
+    margin-left: 0.25em;
+    vertical-align: middle;
+}
+.required-star {
+    color: #e03131;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-left: 0.15em;
+    vertical-align: middle;
+}
 }
 
 .poll-action-archive {
@@ -1960,21 +2076,6 @@ a:hover {
     gap: 14px 16px;
 }
 
-#createPollForm>label:not(.consent-row)::before {
-    content: "Phase 00 · Pipeline";
-    font-size: var(--fs-caption);
-    font-weight: var(--fw-extrabold);
-    letter-spacing: 0.02em;
-    color: var(--accent-2);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    width: fit-content;
-    padding: 2px 10px;
-    border-radius: 999px;
-    border: 1px dashed color-mix(in srgb, var(--accent-2) 60%, transparent);
-    background: color-mix(in srgb, var(--surface-soft) 75%, white 25%);
-}
 
 [data-theme="default-dark"] #createPollForm>label:not(.consent-row)::before,
 [data-theme="nature-dark"] #createPollForm>label:not(.consent-row)::before {
@@ -1983,41 +2084,7 @@ a:hover {
     background: rgba(255, 255, 255, 0.14);
 }
 
-#createPollForm>label:not(.consent-row):nth-of-type(1)::before {
-    content: "Phase 01 · Cadrage";
-}
 
-#createPollForm>label:not(.consent-row):nth-of-type(2)::before {
-    content: "Phase 02 · Modèle";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(3)::before {
-    content: "Phase 03 · Règles de vote";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(4)::before {
-    content: "Phase 04 · Spécification";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(5)::before {
-    content: "Phase 05 · Responsable";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(6)::before {
-    content: "Phase 06 · Deadline";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(7)::before {
-    content: "Phase 07 · Sécurité";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(8)::before {
-    content: "Phase 08 · Diffusion";
-}
-
-#createPollForm>label:not(.consent-row):nth-of-type(9)::before {
-    content: "Phase 09 · Scénarios";
-}
 
 #createPollForm>label:not(.consent-row) {
     position: relative;

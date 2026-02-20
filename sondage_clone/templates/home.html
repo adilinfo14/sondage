@@ -2,9 +2,8 @@
 
 {% block content %}
 <section class="card hero">
-    <p class="eyebrow">🗳️ Outil de planification et de vote</p>
     <h1>Créer un sondage</h1>
-    <p class="sub">Prise de rendez-vous, vote d'équipe, choix d'idées: tout en un, avec accès organisateur sécurisé.</p>
+    <p class="sub">Planification, vote, idées : tout-en-un, accès sécurisé.</p>
 </section>
 
 <section class="card create-form-card">
@@ -26,77 +25,71 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
 
-        <label class="full-width">
-            Nom de l'organisateur
-            <input type="text" name="creator_name" placeholder="Ex: Prénom Nom" value="{{
-                (app_auth_user_email.split('@')[0] | replace('.', ' ') | replace('_', ' ') | title)
-                if app_auth_logged_in and app_auth_user_email else ''
-            }}" required>
-            <span class="meta">Préremlpi depuis ton compte, modifiable si besoin.</span>
+        <label class="full-width required">
+            <span class="form-label required-label">Titre du sondage <span class="required-star">*</span></span>
+            <input type="text" name="title" placeholder="Ex: Réunion projet Mars" required>
         </label>
 
-        <label class="full-width">
-            Titre du sondage
-            <input type="text" name="title" placeholder="Ex: Réunion projet" required>
-        </label>
-
-        <label>
-            Type de sondage
-            <select name="poll_type">
-                <option value="meeting" selected>📅 Réunion / RDV</option>
-                <option value="opinion">💡 Prise d’avis / décision</option>
-                <option value="event">🎉 Événement</option>
-            </select>
-        </label>
-
-        <label>
-            Mode de vote
-            <select name="response_mode">
-                <option value="single" selected>Choix unique</option>
-                <option value="multiple">Choix multiple</option>
-            </select>
-        </label>
-
-        <label class="full-width">
-            Description (optionnelle)
-            <textarea name="description" rows="3" placeholder="Contexte, durée, lien visio..."></textarea>
-        </label>
-
-        <label class="full-width">
-            Nom et prénom de l'organisateur
-            <input type="text" name="creator_name" placeholder="Ex: Prénom Nom" value="{{
+        <label class="full-width required">
+            <span class="form-label required-label">Nom de l'organisateur <span class="required-star">*</span></span>
+            <input type="text" name="creator_name" placeholder="Ex: Ilhan Dupont" value="{{
                 (app_auth_user_email.split('@')[0] | replace('.', ' ') | replace('_', ' ') | title)
                 if app_auth_logged_in and app_auth_user_email else ''
             }}" required>
             <span class="meta">Prérempli depuis ton compte, modifiable si besoin.</span>
         </label>
 
-        <label>
-            Date limite de vote (optionnelle)
-            <input type="datetime-local" name="deadline_at">
+
+        <label class="required">
+            <span class="form-label required-label">Type de sondage <span class="required-star">*</span></span>
+            <select name="poll_type" required>
+                <option value="meeting" selected>📅 Réunion / RDV</option>
+                <option value="opinion">💡 Prise d’avis / décision</option>
+                <option value="event">🎉 Événement</option>
+            </select>
+        </label>
+
+        <label class="required">
+            <span class="form-label required-label">Mode de vote <span class="required-star">*</span></span>
+            <select name="response_mode" required>
+                <option value="single" selected>Choix unique</option>
+                <option value="multiple">Choix multiple</option>
+            </select>
+        </label>
+
+
+
+        <label class="full-width">
+            <span class="form-label">Description</span>
+            <textarea name="description" rows="2" placeholder="Contexte, durée, lien visio..."></textarea>
+        </label>
+
+        <label class="full-width required">
+            <span class="form-label required-label">Créneaux / options <span class="required-star">*</span></span>
+            <textarea name="slots" rows="7"
+                placeholder="Exemple réunion :&#10;Lundi 19/02 - 10:00&#10;Lundi 19/02 - 14:00&#10;Mardi 20/02 - 09:30&#10;&#10;Exemple avis :&#10;Option A&#10;Option B&#10;Option C"
+                required></textarea>
         </label>
 
         <label>
-            Code organisateur
+            <span class="form-label">Date limite de vote</span>
+            <input type="datetime-local" name="deadline_at">
+        </label>
+
+        <label class="required">
+            <span class="form-label required-label">Code organisateur <span class="required-star">*</span></span>
             <input type="password" name="organizer_code" minlength="8" placeholder="Minimum 8 caractères" required>
             <span class="meta">Protège l’accès organisateur.</span>
         </label>
 
         <label class="full-width">
-            Emails des participants (optionnel)
-            <textarea name="participant_emails" rows="5"
-                placeholder="Une adresse par ligne"></textarea>
-        </label>
-
-        <label class="full-width">
-            Créneaux / options (un par ligne)
-            <textarea name="slots" rows="12"
-                placeholder="Exemple réunion :&#10;Lundi 19/02 - 10:00&#10;Lundi 19/02 - 14:00&#10;Mardi 20/02 - 09:30&#10;&#10;Exemple avis :&#10;Option A&#10;Option B&#10;Option C"
-                required></textarea>
+            <span class="form-label">Emails des participants</span>
+            <textarea name="participant_emails" rows="3"
+                placeholder="Un email par ligne, ou séparés par virgule. Ex: alice@mail.com, bob@mail.com"></textarea>
         </label>
 
         <label class="consent-row">
-            <input type="checkbox" name="rgpd_email_rights">
+            <input type="checkbox" name="rgpd_email_rights" id="rgpd_email_rights">
             <span>Je confirme disposer du consentement des participants avant envoi d’emails d’invitation.</span>
         </label>
 
@@ -104,6 +97,23 @@
             <input type="checkbox" name="rgpd_creator" required>
             <span>J’accepte la <a href="{{ url_for('privacy_policy') }}" target="_blank" rel="noopener">politique de confidentialité</a>.</span>
         </label>
+</form>
+<script>
+// Rendre la case consentement email obligatoire si le champ email participant est rempli
+document.addEventListener('DOMContentLoaded', function() {
+    var emailField = document.querySelector('textarea[name="participant_emails"]');
+    var consentCheckbox = document.getElementById('rgpd_email_rights');
+    if (emailField && consentCheckbox) {
+        emailField.addEventListener('input', function() {
+            if (emailField.value.trim().length > 0) {
+                consentCheckbox.setAttribute('required', 'required');
+            } else {
+                consentCheckbox.removeAttribute('required');
+            }
+        });
+    }
+});
+</script>
 
         <div class="form-actions">
             <button type="button" id="previewPollBtn">⚡ Prévisualisation</button>
