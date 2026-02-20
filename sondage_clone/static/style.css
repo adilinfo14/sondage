@@ -38,6 +38,37 @@
 /* Harmonisation stricte de la largeur des boutons d'action sondage */
 .btn-poll-action {
     min-width: 170px;
+}
+
+/* Force couleur noire pour tous les titres sur tous les thèmes jour */
+[data-theme="default"] .form-label,
+[data-theme="default"] .required-label,
+[data-theme="nature"] .form-label,
+[data-theme="nature"] .required-label,
+[data-theme="oiseau"] .form-label,
+[data-theme="oiseau"] .required-label,
+body.theme-light .form-label,
+body.theme-light .required-label,
+.theme-light .form-label,
+.theme-light .required-label {
+    color: #111 !important;
+    text-shadow: none !important;
+}
+@media (max-width: 700px) {
+    [data-theme="default"] .form-label,
+    [data-theme="default"] .required-label,
+    [data-theme="nature"] .form-label,
+    [data-theme="nature"] .required-label,
+    [data-theme="oiseau"] .form-label,
+    [data-theme="oiseau"] .required-label,
+    body.theme-light .form-label,
+    body.theme-light .required-label,
+    .theme-light .form-label,
+    .theme-light .required-label {
+        color: #111 !important;
+        text-shadow: none !important;
+    }
+}
     max-width: 170px;
     flex: 1 1 170px;
     display: flex;
